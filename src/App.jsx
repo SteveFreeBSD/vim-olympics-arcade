@@ -8,7 +8,7 @@ import Pill from './components/ui/Pill'
 import CommandCard from './components/CommandCard'
 import CommandModal from './components/CommandModal'
 import Quiz from './components/Quiz'
-import Playground, { getPlaygroundApi } from './components/Playground'
+import Playground from './components/Playground'
 import data from './data/index.js'
 
 // ✅ Diagnostics imports
@@ -29,14 +29,18 @@ export default function App(){
   const actions=[{title:'Focus search',kbd:'/',run:()=>inputRef.current?.focus()},{title:'Toggle Plugins',kbd:'Ctrl+P',run:()=>setPlugins(v=>!v)},{title:'Toggle Compact',kbd:'Ctrl+C',run:()=>setDense(v=>!v)},{title:'Toggle Practice',kbd:'Ctrl+M',run:()=>setPractice(v=>!v)},...cats.map(c=>({title:`Go to: ${c}`,run:()=>setCat(c)}))]
   const total=results.reduce((n,g)=>n+g.items.length,0)
 
-  // ✅ Count deep items and log
+  // ✅ Count deep items and log (dev only)
   const { deep, total: grandTotal } = countDeep(data.groups);
-  console.info('[Vim Olympics] Deep items:', deep, 'of', grandTotal);
+  if (import.meta.env && import.meta.env.DEV) {
+    console.info('[Vim Olympics] Deep items:', deep, 'of', grandTotal);
+  }
 
   const openDetails=(item,opts={})=>setOpenItem({...item,_opts:opts});
   const closeDetails=()=>setOpenItem(null);
+  const playgroundRef = useRef(null);
   const sendTutorialToPlayground=(item)=>{
-    const api=getPlaygroundApi();
+    const api = playgroundRef.current;
+    if (!api) return;
     if(item.tutorial?.buffer) api.setBuffer(item.tutorial.buffer);
     if(item.tutorial?.keys) api.sendKeys(item.tutorial.keys);
     setOpenItem(null);
@@ -46,8 +50,10 @@ export default function App(){
   return(<div className='min-h-screen text-slate-100' style={{background:'linear-gradient(180deg,#020617,#0b1220)'}}>
     <Stars/>
     <Header onPalette={()=>setPalette(true)}/>
-    {/* ✅ Visual banner so you know it’s wired */}
-    <DebugBanner deepCount={deep} total={grandTotal} />
+    {/* ✅ Visual banner (dev only) */}
+    {import.meta.env && import.meta.env.DEV ? (
+      <DebugBanner deepCount={deep} total={grandTotal} />
+    ) : null}
     <ErrorBoundary>
       <main className={'max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[300px,1fr] gap-6'+(dense?'':' md:gap-8')}>
         <aside className='space-y-4'>
@@ -68,7 +74,7 @@ export default function App(){
           </div>
         </aside>
         <section className='space-y-8'>
-          {practice&&(<div className='space-y-4'><div className='flex items-center justify-between'><h2 className='text-lg font-semibold tracking-tight text-slate-100 drop-shadow'>Practice Mode</h2><div className='text-slate-300 text-sm'>Quiz and Motion Playground</div></div><Quiz items={ALL} includePlugins={plugins}/><div id="playground-anchor"/><Playground/></div>)}
+          {practice&&(<div className='space-y-4'><div className='flex items-center justify-between'><h2 className='text-lg font-semibold tracking-tight text-slate-100 drop-shadow'>Practice Mode</h2><div className='text-slate-300 text-sm'>Quiz and Motion Playground</div></div><Quiz items={ALL} includePlugins={plugins}/><div id="playground-anchor"/><Playground ref={playgroundRef}/></div>)}
           {results.map(group=>(<div key={group.title}><div className='flex items-center justify-between mb-2'><h2 className='text-lg font-semibold tracking-tight text-slate-100 drop-shadow'>{group.title}</h2><div className='text-slate-300 text-sm'>{group.items.length} items</div></div>
             <div className='grid [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))] gap-3'>{group.items.map((it,idx)=>(
               <CommandCard key={idx} item={it} onOpen={openDetails} />

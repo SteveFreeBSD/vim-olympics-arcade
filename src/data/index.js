@@ -41,11 +41,13 @@ export const tips = [
   { text: "Use vimtutor for 30 minutes to build muscle memory." }
 ];
 
-// Helpful console diagnostic
-(function(){
-  const deep = groups.reduce((n,g)=> n + g.items.filter(it => it.details || (it.examples && it.examples.length) || it.tutorial).length, 0);
-  const total = groups.reduce((n,g)=> n + g.items.length, 0);
-  console.info('[Vim Olympics] Groups:', groups.length, 'Items:', total, 'Deep items:', deep);
-})();
+// Helpful console diagnostic (dev only)
+if (import.meta && import.meta.env && import.meta.env.DEV) {
+  (function(){
+    const deep = groups.reduce((n,g)=> n + g.items.filter(it => it.details || (it.examples && it.examples.length) || it.tutorial).length, 0);
+    const total = groups.reduce((n,g)=> n + g.items.length, 0);
+    console.info('[Vim Olympics] Groups:', groups.length, 'Items:', total, 'Deep items:', deep);
+  })();
+}
 
 export default { groups, tips };
