@@ -1,0 +1,21 @@
+{
+  "category": "Text objects",
+  "items": [
+    {
+      "keys": "ciw",
+      "desc": "change inner word"
+    },
+    {
+      "keys": "di(",
+      "desc": "delete inside ()"
+    },
+    {
+      "keys": "va{",
+      "desc": "select around {}"
+    },
+    {
+      "keys": "yit",
+      "desc": "yank inside tag <...>"
+    }
+  ]
+}

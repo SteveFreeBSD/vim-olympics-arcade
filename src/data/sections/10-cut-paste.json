@@ -1,0 +1,45 @@
+{
+  "category": "Cut and paste",
+  "items": [
+    {
+      "keys": "yy / 2yy",
+      "desc": "yank line / 2 lines",
+      "details": "Y (capital) yanks whole line, same as yy."
+    },
+    {
+      "keys": "yw / yiw / yaw",
+      "desc": "yank word / inner / around",
+      "details": "yaw includes one surrounding space."
+    },
+    {
+      "keys": "y$ / Y",
+      "desc": "yank to end of line / yank line"
+    },
+    {
+      "keys": "p / P",
+      "desc": "paste after / before",
+      "details": "Use ]p to paste and adjust indent."
+    },
+    {
+      "keys": "gp / gP",
+      "desc": "paste and place cursor after paste"
+    },
+    {
+      "keys": "dd / 2dd",
+      "desc": "delete line(s)"
+    },
+    {
+      "keys": "dw / diw / daw",
+      "desc": "delete word motions"
+    },
+    {
+      "keys": "D / d$",
+      "desc": "delete to end of line"
+    },
+    {
+      "keys": "x",
+      "desc": "delete char under cursor",
+      "details": "Same as dl."
+    }
+  ]
+}

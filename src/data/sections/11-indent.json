@@ -1,0 +1,37 @@
+{
+  "category": "Indent text",
+  "items": [
+    {
+      "keys": ">> / <<",
+      "desc": "indent / de-indent line one shiftwidth"
+    },
+    {
+      "keys": ">% / <%",
+      "desc": "indent / de-indent block at matching brace"
+    },
+    {
+      "keys": ">ib / >at",
+      "desc": "indent inner () / a tag <>"
+    },
+    {
+      "keys": "3==",
+      "desc": "re-indent 3 lines"
+    },
+    {
+      "keys": "=%",
+      "desc": "re-indent block at brace"
+    },
+    {
+      "keys": "=iB",
+      "desc": "re-indent inner {}"
+    },
+    {
+      "keys": "gg=G",
+      "desc": "re-indent entire buffer"
+    },
+    {
+      "keys": "]p",
+      "desc": "paste and adjust indent"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "category": "Plugins",
+  "items": [
+    {
+      "keys": "<Space>n",
+      "desc": "NERDTree toggle",
+      "plugin": true,
+      "pluginName": "nerdtree"
+    },
+    {
+      "keys": "<Space>p",
+      "desc": "fzf files",
+      "plugin": true,
+      "pluginName": "fzf"
+    },
+    {
+      "keys": "<Space>r",
+      "desc": "ripgrep search",
+      "plugin": true,
+      "pluginName": "fzf"
+    },
+    {
+      "keys": "<Space>gs",
+      "desc": "Git status",
+      "plugin": true,
+      "pluginName": "fugitive"
+    },
+    {
+      "keys": "gd",
+      "desc": "go to definition",
+      "plugin": true,
+      "pluginName": "coc"
+    },
+    {
+      "keys": "s..",
+      "desc": "Sneak jump",
+      "plugin": true,
+      "pluginName": "sneak"
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "category": "Editing",
+  "items": [
+    {
+      "keys": "cw / ce",
+      "desc": "change to end of word",
+      "details": "Deletes from cursor to end of word and enters Insert mode. ce acts like cw when on first char.",
+      "examples": [
+        {
+          "before": "qui|ck brown",
+          "after": "qui| brown",
+          "notes": "after entering Insert mode, type new text"
+        }
+      ],
+      "tutorial": {
+        "buffer": [
+          "qui|ck brown fox"
+        ],
+        "steps": [
+          {
+            "do": "Type cw",
+            "expect": "delete 'ck' and enter Insert mode"
+          },
+          {
+            "do": "Type et<Esc>",
+            "expect": "'quiet brown fox'"
+          }
+        ],
+        "keys": [
+          "c",
+          "w"
+        ]
+      }
+    },
+    {
+      "keys": "C",
+      "desc": "change to end of line",
+      "details": "Equivalent to c$ \u2014 deletes from cursor to EOL and enters Insert mode.",
+      "examples": [
+        {
+          "before": "alpha be|ta gamma",
+          "after": "alpha be|",
+          "notes": "enter Insert to type replacement"
+        }
+      ],
+      "tutorial": {
+        "buffer": [
+          "alpha be|ta gamma"
+        ],
+        "steps": [
+          {
+            "do": "Type C",
+            "expect": "rest of line removed"
+          },
+          {
+            "do": "Type ta<Esc>",
+            "expect": "alpha beta"
+          }
+        ],
+        "keys": [
+          "C"
+        ]
+      }
+    },
+    {
+      "keys": "R",
+      "desc": "replace mode",
+      "details": "Overtype characters until you press Esc. Handy for fixed-width edits.",
+      "examples": [
+        {
+          "before": "serial: 12|34",
+          "after": "serial: 12|XX",
+          "notes": "type XX then Esc"
+        }
+      ]
+    },
+    {
+      "keys": ".",
+      "desc": "repeat last change",
+      "details": "Repeats the previous editing command. Works with motions and operators.",
+      "examples": [
+        {
+          "before": "foo foo |foo",
+          "after": "foo foo |bar",
+          "notes": "after one 'ciwbar', use . to repeat elsewhere"
+        }
+      ]
+    }
+  ]
+}

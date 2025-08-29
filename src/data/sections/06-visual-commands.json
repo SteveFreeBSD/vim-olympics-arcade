@@ -1,0 +1,35 @@
+{
+  "category": "Visual commands",
+  "items": [
+    {
+      "keys": ">",
+      "desc": "shift right",
+      "details": "Indents by 'shiftwidth'. Repeat with ."
+    },
+    {
+      "keys": "<",
+      "desc": "shift left",
+      "details": "Outdents by 'shiftwidth'."
+    },
+    {
+      "keys": "y",
+      "desc": "yank selection",
+      "details": "Copies to default register ('\"). Use \"+y for system clipboard."
+    },
+    {
+      "keys": "d",
+      "desc": "delete selection",
+      "details": "Deletes into default register."
+    },
+    {
+      "keys": "~",
+      "desc": "toggle case",
+      "details": "Switch case of selected text."
+    },
+    {
+      "keys": "u / U",
+      "desc": "lowercase / uppercase",
+      "details": "Force case on selection."
+    }
+  ]
+}

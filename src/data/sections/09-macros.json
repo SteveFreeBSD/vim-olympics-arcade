@@ -1,0 +1,15 @@
+{
+  "category": "Macros",
+  "items": [
+    {
+      "keys": "qa / q",
+      "desc": "start/stop recording to a",
+      "details": "Record keystrokes into register a until q."
+    },
+    {
+      "keys": "@a / @@",
+      "desc": "play macro a / repeat last macro",
+      "details": "Use a count to repeat."
+    }
+  ]
+}

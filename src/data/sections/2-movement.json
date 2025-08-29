@@ -1,0 +1,21 @@
+{
+  "category": "Cursor movement",
+  "items": [
+    {
+      "keys": "h j k l",
+      "desc": "move left, down, up, right"
+    },
+    {
+      "keys": "w / e / b",
+      "desc": "word motions forward, end, back"
+    },
+    {
+      "keys": "0 / ^ / $",
+      "desc": "line start / first nonblank / end"
+    },
+    {
+      "keys": "gg / G",
+      "desc": "top / bottom of buffer"
+    }
+  ]
+}

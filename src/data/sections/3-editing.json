@@ -1,0 +1,21 @@
+{
+  "category": "Editing",
+  "items": [
+    {
+      "keys": "r / R",
+      "desc": "replace char / replace mode"
+    },
+    {
+      "keys": "cc / ciw",
+      "desc": "change line / change word"
+    },
+    {
+      "keys": "u / Ctrl-r",
+      "desc": "undo / redo"
+    },
+    {
+      "keys": ".",
+      "desc": "repeat last command"
+    }
+  ]
+}
