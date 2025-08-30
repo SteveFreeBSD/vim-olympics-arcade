@@ -1,5 +1,6 @@
-import React,{useEffect,useMemo,useRef,useState}from'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import Stars from './components/Stars'
+import Fuse from 'fuse.js'
 import ErrorBoundary from './components/ErrorBoundary'
 import Header from './components/Header'
 import CommandPalette from './components/CommandPalette'
@@ -15,32 +16,143 @@ import data from './data/index.js'
 import DebugBanner from './components/DebugBanner'
 import { countDeep } from './deepCount'
 
-const normalize=s=>s.toLowerCase().replace(/\s+/g,' ').trim()
+const normalize = s => s.toLowerCase().replace(/\s+/g, ' ').trim()
 
-export default function App(){
-  const[q,setQ]=useState('');const[cat,setCat]=useState('All');const[plugins,setPlugins]=useState(true);
-  const[dense,setDense]=useState(true);const[practice,setPractice]=useState(true);const[palette,setPalette]=useState(false);
-  const[openItem,setOpenItem]=useState(null);
-  const inputRef=useRef(null)
-  const cats=['All',...data.groups.map(g=>g.category)]
-  const ALL=useMemo(()=>data.groups.flatMap(g=>g.items.map(it=>({...it,cat:g.category}))),[])
-  const results=useMemo(()=>{const nq=normalize(q);const out=[];for(const g of data.groups){if(cat!=='All'&&g.category!==cat)continue;const items=g.items.filter(it=>(plugins||!it.plugin)&&(!nq||(g.category+' '+it.keys+' '+it.desc+' '+(it.pluginName||'')).toLowerCase().includes(nq)));if(items.length)out.push({title:g.category,items})}return out},[q,cat,plugins])
-  useEffect(()=>{const h=e=>{if(e.key==='/'){e.preventDefault();inputRef.current?.focus()}if((e.ctrlKey||e.metaKey)&&e.key==='p'){e.preventDefault();setPlugins(v=>!v)}if((e.ctrlKey||e.metaKey)&&e.key==='c'){e.preventDefault();setDense(v=>!v)}if((e.ctrlKey||e.metaKey)&&e.key==='m'){e.preventDefault();setPractice(v=>!v)}if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();setPalette(true)}};window.addEventListener('keydown',h);return()=>window.removeEventListener('keydown',h)},[])
-  const actions=[{title:'Focus search',kbd:'/',run:()=>inputRef.current?.focus()},{title:'Toggle Plugins',kbd:'Ctrl+P',run:()=>setPlugins(v=>!v)},{title:'Toggle Compact',kbd:'Ctrl+C',run:()=>setDense(v=>!v)},{title:'Toggle Practice',kbd:'Ctrl+M',run:()=>setPractice(v=>!v)},...cats.map(c=>({title:`Go to: ${c}`,run:()=>setCat(c)}))]
-  const total=results.reduce((n,g)=>n+g.items.length,0)
+export default function App() {
+  const [q, setQ] = useState('')
+  const [cat, setCat] = useState('All')
+  const [plugins, setPlugins] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('prefs.plugins') || 'true') } catch { return true }
+  })
+  const [dense, setDense] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('prefs.dense') || 'true') } catch { return true }
+  })
+  const [practice, setPractice] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('prefs.practice') || 'true') } catch { return true }
+  })
+  const [palette, setPalette] = useState(false)
+  const [openItem, setOpenItem] = useState(null)
+  const inputRef = useRef(null)
+  const playRef = useRef(null)
+  const cats = ['All', ...data.groups.map(g => g.category)]
+  const ALL = useMemo(
+    () => data.groups.flatMap(g => g.items.map(it => ({ ...it, cat: g.category }))),
+    [],
+  )
+  const fuse = useMemo(() => new Fuse(ALL, {
+    includeScore: true,
+    threshold: 0.35,
+    ignoreLocation: true,
+    keys: [
+      { name: 'keys', weight: 0.6 },
+      { name: 'desc', weight: 0.3 },
+      { name: 'pluginName', weight: 0.1 },
+      { name: 'cat', weight: 0.05 },
+    ],
+  }), [ALL])
+  const results = useMemo(() => {
+    const nq = normalize(q)
+    // No query: keep original grouping and filters
+    if (!nq) {
+      const out = []
+      for (const g of data.groups) {
+        if (cat !== 'All' && g.category !== cat) continue
+        const items = g.items.filter(it => (plugins || !it.plugin))
+        if (items.length) out.push({ title: g.category, items })
+      }
+      return out
+    }
+    // Fuzzy search across ALL, then re-group by category
+    const matched = fuse
+      .search(nq)
+      .map(r => r.item)
+      .filter(it => (plugins || !it.plugin) && (cat === 'All' || it.cat === cat))
+    const map = new Map()
+    for (const it of matched) {
+      const arr = map.get(it.cat) || []
+      arr.push(it)
+      map.set(it.cat, arr)
+    }
+    return Array.from(map.entries()).map(([title, items]) => ({ title, items }))
+  }, [q, cat, plugins, fuse])
+  useEffect(() => {
+    const h = e => {
+      if (e.key === '/') {
+        e.preventDefault()
+        inputRef.current?.focus()
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+        e.preventDefault()
+        setPlugins(v => !v)
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+        e.preventDefault()
+        setDense(v => !v)
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'm') {
+        e.preventDefault()
+        setPractice(v => !v)
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        setPalette(true)
+      }
+    }
+    window.addEventListener('keydown', h)
+    return () => window.removeEventListener('keydown', h)
+  }, [])
+  // Load initial state from URL (overrides storage)
+  useEffect(() => {
+    try {
+      const sp = new URL(window.location.href).searchParams
+      if (sp.has('q')) setQ(sp.get('q') || '')
+      if (sp.has('cat')) setCat(sp.get('cat') || 'All')
+      if (sp.has('plugins')) setPlugins(sp.get('plugins') === '1')
+      if (sp.has('dense')) setDense(sp.get('dense') === '1')
+      if (sp.has('practice')) setPractice(sp.get('practice') === '1')
+    } catch {}
+  }, [])
+  // Reflect state to URL, preserving unrelated params and hash
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href)
+      const sp = new URLSearchParams(url.search)
+      // set or clear app-specific params
+      if (q) sp.set('q', q); else sp.delete('q')
+      if (cat && cat !== 'All') sp.set('cat', cat); else sp.delete('cat')
+      sp.set('plugins', plugins ? '1' : '0')
+      sp.set('dense', dense ? '1' : '0')
+      sp.set('practice', practice ? '1' : '0')
+      const qs = sp.toString()
+      const next = `${url.pathname}${qs ? '?' + qs : ''}${url.hash}`
+      window.history.replaceState(null, '', next)
+    } catch {}
+  }, [q, cat, plugins, dense, practice])
+  useEffect(() => { try { localStorage.setItem('prefs.plugins', JSON.stringify(plugins)) } catch{} }, [plugins])
+  useEffect(() => { try { localStorage.setItem('prefs.dense', JSON.stringify(dense)) } catch{} }, [dense])
+  useEffect(() => { try { localStorage.setItem('prefs.practice', JSON.stringify(practice)) } catch{} }, [practice])
+  const actions = [
+    { title: 'Focus search', kbd: '/', run: () => inputRef.current?.focus() },
+    { title: 'Toggle Plugins', kbd: 'Ctrl+P', run: () => setPlugins(v => !v) },
+    { title: 'Toggle Compact', kbd: 'Ctrl+C', run: () => setDense(v => !v) },
+    {
+      title: 'Toggle Practice',
+      kbd: 'Ctrl+M',
+      run: () => setPractice(v => !v),
+    },
+    ...cats.map(c => ({ title: `Go to: ${c}`, run: () => setCat(c) })),
+  ]
+  const total = results.reduce((n, g) => n + g.items.length, 0)
 
-  // ✅ Count deep items and log (dev only)
+  // ✅ Count deep items and log
   const { deep, total: grandTotal } = countDeep(data.groups);
-  if (import.meta.env && import.meta.env.DEV) {
-    console.info('[Vim Olympics] Deep items:', deep, 'of', grandTotal);
-  }
+  console.info('[Vim Olympics] Deep items:', deep, 'of', grandTotal);
 
   const openDetails=(item,opts={})=>setOpenItem({...item,_opts:opts});
   const closeDetails=()=>setOpenItem(null);
-  const playgroundRef = useRef(null);
   const sendTutorialToPlayground=(item)=>{
-    const api = playgroundRef.current;
-    if (!api) return;
+    const api = playRef.current;
+    if(!api) return;
     if(item.tutorial?.buffer) api.setBuffer(item.tutorial.buffer);
     if(item.tutorial?.keys) api.sendKeys(item.tutorial.keys);
     setOpenItem(null);
@@ -50,10 +162,8 @@ export default function App(){
   return(<div className='min-h-screen text-slate-100' style={{background:'linear-gradient(180deg,#020617,#0b1220)'}}>
     <Stars/>
     <Header onPalette={()=>setPalette(true)}/>
-    {/* ✅ Visual banner (dev only) */}
-    {import.meta.env && import.meta.env.DEV ? (
-      <DebugBanner deepCount={deep} total={grandTotal} />
-    ) : null}
+    {/* ✅ Visual banner so you know it’s wired */}
+    <DebugBanner deepCount={deep} total={grandTotal} />
     <ErrorBoundary>
       <main className={'max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[300px,1fr] gap-6'+(dense?'':' md:gap-8')}>
         <aside className='space-y-4'>
@@ -74,7 +184,7 @@ export default function App(){
           </div>
         </aside>
         <section className='space-y-8'>
-          {practice&&(<div className='space-y-4'><div className='flex items-center justify-between'><h2 className='text-lg font-semibold tracking-tight text-slate-100 drop-shadow'>Practice Mode</h2><div className='text-slate-300 text-sm'>Quiz and Motion Playground</div></div><Quiz items={ALL} includePlugins={plugins}/><div id="playground-anchor"/><Playground ref={playgroundRef}/></div>)}
+          {practice&&(<div className='space-y-4'><div className='flex items-center justify-between'><h2 className='text-lg font-semibold tracking-tight text-slate-100 drop-shadow'>Practice Mode</h2><div className='text-slate-300 text-sm'>Quiz and Motion Playground</div></div><Quiz items={ALL} includePlugins={plugins}/><div id="playground-anchor"/><Playground ref={playRef}/></div>)}
           {results.map(group=>(<div key={group.title}><div className='flex items-center justify-between mb-2'><h2 className='text-lg font-semibold tracking-tight text-slate-100 drop-shadow'>{group.title}</h2><div className='text-slate-300 text-sm'>{group.items.length} items</div></div>
             <div className='grid [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))] gap-3'>{group.items.map((it,idx)=>(
               <CommandCard key={idx} item={it} onOpen={openDetails} />
