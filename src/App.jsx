@@ -144,6 +144,25 @@ export default function App() {
   ]
   const total = results.reduce((n, g) => n + g.items.length, 0)
 
+  const nlq = useMemo(() => {
+    const s = (q || '').toLowerCase()
+    if (!s) return []
+    const rules = [
+      { re: /(delete|remove) to next \)/, out: ['d)'], note: 'delete to )' },
+      { re: /(change|replace) (in|inside) (quote|\"|\')/, out: ['ci"', "ci'"], note: 'change inside quotes' },
+      { re: /(delete|remove) (in|inside) (quote|\"|\')/, out: ['di"', "di'"], note: 'delete inside quotes' },
+      { re: /(go|jump) to (line )?start/, out: ['^', '0'], note: 'start of line' },
+      { re: /(go|jump) to (line )?end/, out: ['$'], note: 'end of line' },
+      { re: /(next|forward) word/, out: ['w', 'W'], note: 'next word' },
+      { re: /(prev|previous|back) word/, out: ['b', 'B'], note: 'previous word' },
+      { re: /(yank|copy) line/, out: ['yy'], note: 'yank line' },
+      { re: /(paste)/, out: ['p', 'P'], note: 'paste' },
+    ]
+    const hits = []
+    for (const r of rules) if (r.re.test(s)) hits.push(r)
+    return hits
+  }, [q])
+
   // ✅ Count deep items and log
   const { deep, total: grandTotal } = countDeep(data.groups);
   console.info('[Vim Olympics] Deep items:', deep, 'of', grandTotal);
@@ -167,8 +186,19 @@ export default function App() {
     <ErrorBoundary>
       <main className={'max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[300px,1fr] gap-6'+(dense?'':' md:gap-8')}>
         <aside className='space-y-4'>
-          <div className='rounded-3xl border border-slate-700/70 bg-slate-900/70 p-4'><div className='text-xs uppercase tracking-wide text-slate-300 mb-2'>Search</div>
-            <input ref={inputRef} value={q} onChange={e=>setQ(e.target.value)} placeholder='Find keys or actions' className='w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500'/>
+          <div className='rounded-3xl border border-slate-700/70 bg-slate-900/70 p-4'>
+            <div className='text-xs uppercase tracking-wide text-slate-300 mb-2'>Search</div>
+            <input ref={inputRef} value={q} onChange={e=>setQ(e.target.value)} placeholder='Find keys or actions (try: delete to ) )' className='w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500'/>
+            {!!nlq.length && (
+              <div className='mt-2 text-xs text-slate-400 space-y-1'>
+                <div className='opacity-80'>Suggestions</div>
+                <div className='flex flex-wrap gap-1'>
+                  {nlq.flatMap((r, i) => r.out.map((k, j) => (
+                    <span key={i+'-'+j} className='px-1.5 py-0.5 rounded border border-slate-600 text-slate-200 bg-slate-800/50'>{k}</span>
+                  )))}
+                </div>
+              </div>
+            )}
           </div>
           <div className='rounded-3xl border border-slate-700/70 bg-slate-900/70 p-4'><div className='text-xs uppercase tracking-wide text-slate-300 mb-2'>Categories</div>
             <div className='flex flex-wrap gap-2'>{cats.map(c=>(<Pill key={c} active={cat===c} onClick={()=>setCat(c)}>{c}</Pill>))}</div>
@@ -184,10 +214,34 @@ export default function App() {
           </div>
         </aside>
         <section className='space-y-8'>
-          {practice&&(<div className='space-y-4'><div className='flex items-center justify-between'><h2 className='text-lg font-semibold tracking-tight text-slate-100 drop-shadow'>Practice Mode</h2><div className='text-slate-300 text-sm'>Quiz and Motion Playground</div></div><Quiz items={ALL} includePlugins={plugins}/><div id="playground-anchor"/><Playground ref={playRef}/></div>)}
+          {practice&&(
+            <div className='space-y-4'>
+              <div className='flex items-center justify-between'>
+                <h2 className='text-lg font-semibold tracking-tight text-slate-100 drop-shadow'>Practice Mode</h2>
+                <div className='flex items-center gap-2 text-slate-300 text-sm'>
+                  <div>Quiz and Motion Playground</div>
+                  <label className='inline-flex items-center gap-2 px-2 py-1 rounded-lg border border-slate-600 cursor-pointer hover:bg-slate-800'>
+                    <input type='file' accept='application/json' className='hidden' onChange={async (e)=>{
+                      try{
+                        const file = e.target.files && e.target.files[0]; if(!file) return;
+                        const txt = await file.text();
+                        const obj = JSON.parse(txt);
+                        if(obj && obj.tutorial){ sendTutorialToPlayground(obj); }
+                      }catch(err){ console.error(err); alert('Invalid lesson JSON'); }
+                      finally{ e.target.value=''; }
+                    }}/>
+                    <span className='text-xs'>Import Lesson</span>
+                  </label>
+                </div>
+              </div>
+              <Quiz items={ALL} includePlugins={plugins}/>
+              <div id="playground-anchor"/>
+              <Playground ref={playRef}/>
+            </div>
+          )}
           {results.map(group=>(<div key={group.title}><div className='flex items-center justify-between mb-2'><h2 className='text-lg font-semibold tracking-tight text-slate-100 drop-shadow'>{group.title}</h2><div className='text-slate-300 text-sm'>{group.items.length} items</div></div>
             <div className='grid [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))] gap-3'>{group.items.map((it,idx)=>(
-              <CommandCard key={idx} item={it} onOpen={openDetails} />
+              <CommandCard key={idx} item={it} onOpen={openDetails} query={q} />
             ))}</div></div>))}
         </section>
       </main>

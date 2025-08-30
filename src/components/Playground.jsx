@@ -14,6 +14,11 @@ const Playground = forwardRef(function Playground(_, ref){
   const [delay,setDelay]=useState(80); // ms between replayed key ops
   const [replaying,setReplaying]=useState("");
   const [insertMode,setInsertMode]=useState(false);
+  const [insertFromChange,setInsertFromChange]=useState(false);
+  const [insertText,setInsertText]=useState("");
+  const [changeCount,setChangeCount]=useState(1);
+  const [lastChange,setLastChange]=useState(null); // {kind:'x'|'dw'|'cw'|'p', count:number, text?:string, lines?:string[]}
+  const [objPending,setObjPending]=useState(null); // {op:'d'|'c'|'y', kind:'i'|'a', count:number}
 
   // Recorder state
   const [recording, setRecording] = useState(false)
@@ -31,6 +36,19 @@ const Playground = forwardRef(function Playground(_, ref){
   const wordEBack=()=>{const s=buf[row]||"";let i=Math.max(0,col-1);if(i>0){if(!isWordCh(s[i])){while(i>0 && /\W/.test(s[i])) i--;}
     while(i>0 && isWordCh(s[i-1])) i--; if(i>0) i--; while(i>0 && /\W/.test(s[i])) i--;}
     setCol(clamp(i));
+  };
+  const bigWordF=()=>{const s=buf[row]||"";let i=col+1;while(i<s.length&&/\S/.test(s[i]))i++;while(i<s.length&&/\s/.test(s[i]))i++;setCol(clamp(i));};
+  const bigWordB=()=>{const s=buf[row]||"";let i=Math.max(0,col-1);while(i>0&&/\s/.test(s[i]))i--;while(i>0&&/\S/.test(s[i-1]))i--;setCol(clamp(i));};
+  const bigWordE=()=>{const s=buf[row]||"";let i=Math.max(col,0);if(i<s.length-1){if(/\s/.test(s[i])){while(i<s.length&&/\s/.test(s[i]))i++;}while(i<s.length-1&&/\S/.test(s[i+1]))i++;}setCol(clamp(i));};
+
+  const wordBoundsAt=(s,i)=>{let a=i; if(!isWordCh(s[a]) && a>0 && isWordCh(s[a-1])) a=a-1; while(a>0&&isWordCh(s[a-1])) a--; let b=i; while(b<s.length&&isWordCh(s[b])) b++; return [a,b];};
+  const awBounds=(s,i)=>{let [a,b]=wordBoundsAt(s,i); while(b<s.length&&/\s/.test(s[b])) b++; return [a,b];};
+  const betweenDelims=(s,i,chOpen,chClose, include)=>{ // same line only
+    let openIdx=-1, closeIdx=-1;
+    for(let k=i;k>=0;k--){ if(s[k]===chOpen){ openIdx=k; break; } }
+    for(let k=i;k<s.length;k++){ if(s[k]===chClose){ closeIdx=k; break; } }
+    if(openIdx<0||closeIdx<0||closeIdx<=openIdx) return null;
+    return include? [openIdx, closeIdx+1] : [openIdx+1, closeIdx];
   };
 
   // history and register for simple undo/yank/paste
@@ -104,7 +122,11 @@ const Playground = forwardRef(function Playground(_, ref){
     const k=e.key;if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","PageUp","PageDown","Home","End"].includes(k))e.preventDefault();
     // Insert mode typing
     if (insertMode){
-      if (k==='Escape' || k==='Enter') { setInsertMode(false); setPending(''); return; }
+      if (k==='Escape' || k==='Enter') { 
+        setInsertMode(false); setPending('');
+        if(insertFromChange){ setLastChange({kind:'cw', count: changeCount||1, text: insertText}); setInsertFromChange(false); }
+        return; 
+      }
       if (k==='Backspace'){
         const s=buf[row]||''; const i=Math.max(0,col-1); if(col>0){
           const nb=[...buf]; nb[row]=s.slice(0,i)+s.slice(i+1); setBuf(nb); setCol(i);
@@ -114,6 +136,7 @@ const Playground = forwardRef(function Playground(_, ref){
       if (k.length===1 && !e.ctrlKey && !e.metaKey && !e.altKey){
         const s=buf[row]||''; const i=clamp(col);
         const nb=[...buf]; nb[row]=s.slice(0,i)+k+s.slice(i); setBuf(nb); setCol(i+1);
+        if(insertFromChange) setInsertText(t=>t+k);
         return;
       }
       return;
@@ -164,6 +187,9 @@ const Playground = forwardRef(function Playground(_, ref){
       if(pending==='g'){ setPending(''); return run(wordEBack,'ge'); }
       return run(wordE,'e');
     }
+    if(k==="W")return run(bigWordF,"W");
+    if(k==="B")return run(bigWordB,"B");
+    if(k==="E")return run(bigWordE,"E");
 
     if (k === 'g') {
       // potential gg/ge
@@ -197,6 +223,7 @@ const Playground = forwardRef(function Playground(_, ref){
       setCol(Math.min(i, Math.max(0, ns.length - 1)))
       recordOp('x', '')
       setPending('')
+      setLastChange({kind:'x', count:1})
       return
     }
     if (k === 'u') { undo(); recordOp('u',''); return }
@@ -209,6 +236,25 @@ const Playground = forwardRef(function Playground(_, ref){
     // Operators: d, c, y with simple motions
     if (k==='d' || k==='c' || k==='y'){
       setOpPending({op:k, count: Math.max(1,parseInt(countStr||'1',10))}); setPending(''); return;
+    }
+    // Text objects: i?/a?
+    if ((k==='i' || k==='a') && opPending){ setObjPending({op: opPending.op, kind:k, count: opPending.count||1}); setOpPending(null); return; }
+    if (objPending){
+      const {op, kind, count} = objPending; const s = buf[row]||''; let range=null;
+      if (k==='w') range = (kind==='a') ? awBounds(s,col) : wordBoundsAt(s,col);
+      else if (k==='"') range = betweenDelims(s,col,'"','"', kind==='a');
+      else if (k===')' || k==='(') range = betweenDelims(s,col,'(',')', kind==='a');
+      if (range){
+        pushHist();
+        let nb=[...buf]; const [a,b]=range; const start=Math.max(0,a), end=Math.max(start,Math.min(b,s.length));
+        const left = s.slice(0,start), right = s.slice(end);
+        if (op==='y'){ /* optional: store register */ setObjPending(null); return; }
+        nb[row] = left + right; setBuf(nb); setCol(Math.min(start, Math.max(0,(nb[row]||'').length-1)));
+        recordOp(op + kind + k, '');
+        if (op==='c'){ setInsertMode(true); setInsertFromChange(true); setInsertText(''); setChangeCount(1); setLastChange(null); }
+        else if (op==='d'){ setLastChange({kind:'dw', count:1}); }
+      }
+      setObjPending(null); return;
     }
     if (k==='w' && opPending){
       const times = Math.max(1, opPending.count||1);
@@ -229,7 +275,8 @@ const Playground = forwardRef(function Playground(_, ref){
       recordOp(op+'w', String(opPending.count||''));
       const wasC = (op==='c');
       setOpPending(null);
-      if (wasC) { setInsertMode(true); }
+      if (wasC) { setInsertMode(true); setInsertFromChange(true); setInsertText(''); setChangeCount(times); setLastChange(null); }
+      else { setLastChange({kind:'dw', count: times}); }
       return;
     }
     if (k==='y' && opPending && opPending.op==='y'){
@@ -242,7 +289,7 @@ const Playground = forwardRef(function Playground(_, ref){
     if (k==='p'){
       if(!reg.length) return;
       pushHist();
-      const nb=[...buf]; nb.splice(row+1,0,...reg); setBuf(nb); setRow(Math.min(nb.length-1,row+reg.length)); recordOp('p',''); setPending(''); return;
+      const nb=[...buf]; nb.splice(row+1,0,...reg); setBuf(nb); setRow(Math.min(nb.length-1,row+reg.length)); recordOp('p',''); setPending(''); setLastChange({kind:'p', lines:[...reg]}); return;
     }
 
     if (k==='*'){
@@ -266,6 +313,31 @@ const Playground = forwardRef(function Playground(_, ref){
         pos = {r: found.r, c: found.c+1}; setRow(found.r); setCol(found.c);
       }
       recordOp('*', countStr); setPending(''); return;
+    }
+    if (k === '.'){
+      const ch = lastChange; if(!ch) return;
+      if (ch.kind==='x') return onKey({key:'x', preventDefault:()=>{}});
+      if (ch.kind==='dw') { setOpPending({op:'d', count: ch.count||1}); return onKey({key:'w', preventDefault:()=>{}}); }
+      if (ch.kind==='cw'){
+        // delete word then insert stored text
+        const times = Math.max(1, ch.count||1);
+        pushHist();
+        let r=row, c=col; let nb=[...buf];
+        for(let t=0;t<times;t++){
+          const s = nb[r]||''; let i=c;
+          if(i<s.length && isWordCh(s[i])){ while(i<s.length && isWordCh(s[i])) i++; }
+          while(i<s.length && /\\W/.test(s[i])) i++;
+          const start = Math.min(c, s.length), end = Math.min(i, s.length);
+          nb[r] = s.slice(0,start) + s.slice(end);
+          c = Math.min(start, Math.max(0, (nb[r]||'').length-1));
+        }
+        const s2 = nb[r]||''; const i2 = Math.max(0, Math.min(c, s2.length));
+        nb[r] = s2.slice(0,i2) + (ch.text||'') + s2.slice(i2);
+        setBuf(nb); setRow(r); setCol(i2 + (ch.text||'').length);
+        recordOp('.', ''); return;
+      }
+      if (ch.kind==='p'){ pushHist(); const nb=[...buf]; nb.splice(row+1,0,...(ch.lines||[])); setBuf(nb); setRow(Math.min(nb.length-1,row+(ch.lines?.length||0))); recordOp('.', ''); return; }
+      return;
     }
   }
 
