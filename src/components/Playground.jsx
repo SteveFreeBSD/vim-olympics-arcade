@@ -19,6 +19,12 @@ const Playground = forwardRef(function Playground(_, ref){
   const [changeCount,setChangeCount]=useState(1);
   const [lastChange,setLastChange]=useState(null); // {kind:'x'|'dw'|'cw'|'p', count:number, text?:string, lines?:string[]}
   const [objPending,setObjPending]=useState(null); // {op:'d'|'c'|'y', kind:'i'|'a', count:number}
+  const [marks,setMarks]=useState({}); // { [letter]: {row, col} }
+  const [awaitSetMark,setAwaitSetMark]=useState(false);
+  const [awaitJumpMark,setAwaitJumpMark]=useState(null); // "'" or "`"
+  const [macroRegs,setMacroRegs]=useState({}); // { [letter]: string[] }
+  const [recordingReg,setRecordingReg]=useState(null); // letter or '__await__'
+  const [replayingMacro,setReplayingMacro]=useState(false);
 
   // Recorder state
   const [recording, setRecording] = useState(false)
@@ -120,6 +126,22 @@ const Playground = forwardRef(function Playground(_, ref){
 
   const onKey=e=>{
     const k=e.key;if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","PageUp","PageDown","Home","End"].includes(k))e.preventDefault();
+    // Macro record toggle and capture
+    if (k==='q' && !recordingReg){ setRecordingReg('__await__'); return; }
+    if (recordingReg==='__await__'){
+      if(/^[a-z]$/.test(k)){ setRecordingReg(k); setMacroRegs(m=>({...m,[k]:[]})); }
+      else { setRecordingReg(null); }
+      return;
+    }
+    if (recordingReg && !replayingMacro){
+      if (k==='q'){ setRecordingReg(null); return; }
+      // capture key; continue to process it normally
+      setMacroRegs(m=>{ const arr = m[recordingReg] ? [...m[recordingReg]] : []; arr.push(k); return {...m,[recordingReg]:arr}; });
+    }
+
+    // Set/jump marks
+    if (awaitSetMark){ if(/^[a-z]$/.test(k)){ setMarks(m=>({...m,[k]:{row,col}})); } setAwaitSetMark(false); return; }
+    if (awaitJumpMark){ if(/^[a-z]$/.test(k)){ const pos=marks[k]; if(pos){ setRow(pos.row); setCol(clamp(pos.col)); } } setAwaitJumpMark(null); return; }
     // Insert mode typing
     if (insertMode){
       if (k==='Escape' || k==='Enter') { 
@@ -140,6 +162,18 @@ const Playground = forwardRef(function Playground(_, ref){
         return;
       }
       return;
+    }
+    if (awaitChar && awaitChar.op==='@'){
+      const times = Math.max(1, awaitChar.count||1);
+      if(/^[a-z]$/.test(k)){
+        const seq = macroRegs[k]||[];
+        setReplayingMacro(true);
+        for(let t=0;t<times;t++){
+          for(const key of seq){ if(key==='@' || key==='q') continue; onKey({key, preventDefault:()=>{}}); }
+        }
+        setReplayingMacro(false);
+      }
+      setAwaitChar(null); setPending(''); return;
     }
     if(awaitChar){
       const {op,count}=awaitChar; const ch=k;
@@ -212,19 +246,19 @@ const Playground = forwardRef(function Playground(_, ref){
     }
 
     if (k === 'x') {
-      pushHist()
-      const s = buf[row] || ''
-      const i = clamp(col)
-      if (i >= s.length) return
-      const ns = s.slice(0, i) + s.slice(i + 1)
-      const nb = [...buf]
-      nb[row] = ns
-      setBuf(nb)
-      setCol(Math.min(i, Math.max(0, ns.length - 1)))
-      recordOp('x', '')
-      setPending('')
-      setLastChange({kind:'x', count:1})
-      return
+      pushHist();
+      const cnt = Math.max(1, parseInt(countStr||'1',10));
+      let nb=[...buf]; let r=row, c=col;
+      for(let t=0;t<cnt;t++){
+        const s = nb[r] || '';
+        const i = Math.max(0, Math.min(c, Math.max(0, s.length-1)));
+        if (i >= s.length) break;
+        const ns = s.slice(0, i) + s.slice(i + 1);
+        nb[r] = ns;
+        c = Math.min(i, Math.max(0, ns.length - 1));
+      }
+      setBuf(nb); setRow(r); setCol(c);
+      recordOp('x', countStr); setPending(''); setLastChange({kind:'x', count:cnt}); return;
     }
     if (k === 'u') { undo(); recordOp('u',''); return }
 
@@ -232,6 +266,8 @@ const Playground = forwardRef(function Playground(_, ref){
     if (k==='f' || k==='t' || k==='F' || k==='T'){
       setAwaitChar({op:k, count: Math.max(1,parseInt(countStr||'1',10))}); setPending(''); return;
     }
+    // Macro replay '@' awaits register
+    if (k==='@'){ setAwaitChar({op:'@', count: Math.max(1,parseInt(countStr||'1',10))}); setPending(''); return; }
 
     // Operators: d, c, y with simple motions
     if (k==='d' || k==='c' || k==='y'){
@@ -243,7 +279,12 @@ const Playground = forwardRef(function Playground(_, ref){
       const {op, kind, count} = objPending; const s = buf[row]||''; let range=null;
       if (k==='w') range = (kind==='a') ? awBounds(s,col) : wordBoundsAt(s,col);
       else if (k==='"') range = betweenDelims(s,col,'"','"', kind==='a');
+      else if (k==="'") range = betweenDelims(s,col,"'","'", kind==='a');
+      else if (k==='`') range = betweenDelims(s,col,'`','`', kind==='a');
       else if (k===')' || k==='(') range = betweenDelims(s,col,'(',')', kind==='a');
+      else if (k===']' || k==='[') range = betweenDelims(s,col,'[',']', kind==='a');
+      else if (k==='}' || k==='{') range = betweenDelims(s,col,'{','}', kind==='a');
+      else if (k==='>' || k==='<') range = betweenDelims(s,col,'<','>', kind==='a');
       if (range){
         pushHist();
         let nb=[...buf]; const [a,b]=range; const start=Math.max(0,a), end=Math.max(start,Math.min(b,s.length));
@@ -314,6 +355,8 @@ const Playground = forwardRef(function Playground(_, ref){
       }
       recordOp('*', countStr); setPending(''); return;
     }
+    if (k==='m'){ setAwaitSetMark(true); setPending(''); return; }
+    if (k==="'" || k==='`'){ setAwaitJumpMark(k); setPending(''); return; }
     if (k === '.'){
       const ch = lastChange; if(!ch) return;
       if (ch.kind==='x') return onKey({key:'x', preventDefault:()=>{}});
@@ -389,7 +432,7 @@ const Playground = forwardRef(function Playground(_, ref){
       <div className='flex flex-col gap-2 border-b border-slate-800/70 bg-gradient-to-b from-slate-900/80 to-slate-950/80 px-4 py-3'>
         <div className='flex items-center justify-between'>
           <div className='text-sm text-slate-300'>
-          Motion Playground <span className='text-slate-500'>(hjkl, 0, ^, $, w, e, b, ge, f/t/F/T, *, gg, G, x, dw/cw, yy, p, u)</span>
+          Motion Playground <span className='text-slate-500'>(hjkl, 0, ^, $, w/W, e/E, b/B, ge, f/t/F/T, *, gg, G, x (count), dw/cw, yy, p, u, iw/aw, i"/a", i'/a', i)/a), i]/a], i}/a}, i&lt;/a&gt;, marks m '`, macros q/@, . repeat)</span>
           </div>
           <div className='flex items-center gap-3'>
           <label className='flex items-center gap-2 text-xs text-slate-300'>
