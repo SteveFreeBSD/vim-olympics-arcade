@@ -1,0 +1,21 @@
+diff --git a/components/Playground.jsx b/components/Playground.jsx
+index 1234567..89abcde 100644
+--- a/components/Playground.jsx
++++ b/components/Playground.jsx
+@@
+-  const wordF=()=>{const s=buf[row]||"";let i=col+1;while(i<s.length&&/[A-Za-z0-9_]/.test(s[i]))i++;while(i<s.length&&/\W/.test(s[i]))i++;setCol(clamp(i));};
+-  const wordB=()=>{const s=buf[row]||"";let i=Math.max(0,col-1);while(i>0&&/\W/.test(s[i]))i--;while(i>0&&/[A-Za-z0-9_]/.test(s[i-1]))i--;setCol(clamp(i));};
++  const wordF=()=>{const s=buf[row]||"";let i=col+1;while(i<s.length&&/[A-Za-z0-9_]/.test(s[i]))i++;while(i<s.length&&/\W/.test(s[i]))i++;setCol(clamp(i));};
++  const wordB=()=>{const s=buf[row]||"";let i=Math.max(0,col-1);while(i>0&&/\W/.test(s[i]))i--;while(i>0&&/[A-Za-z0-9_]/.test(s[i-1]))i--;setCol(clamp(i));};
++  // move to end of current/next word (Vim 'e')
++  const wordEndF=()=>{const s=buf[row]||"";let i=Math.min(Math.max(0,col),Math.max(0,s.length-1));
++    while(i<s.length&&/\W/.test(s[i]))i++;
++    while(i+1<s.length&&/[A-Za-z0-9_]/.test(s[i+1]))i++;
++    setCol(clamp(i));
++  };
+@@
+-    if(k==="w")return run(wordF,"w");
+-    if(k==="b")return run(wordB,"b");
++    if(k==="w")return run(wordF,"w");
++    if(k==="b")return run(wordB,"b");
++    if(k==="e")return run(wordEndF,"e");
