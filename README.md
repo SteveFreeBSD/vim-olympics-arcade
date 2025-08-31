@@ -1,5 +1,8 @@
 # Vim Olympics Arcade & Tutor 🕹️📗
 
+## Preview
+![Screenshot of Vim Olympics Arcade](docs/screenshot.png)
+
 An **interactive Vim learning app** with two personalities:
 - **Tutor**: a clean, focused practice environment (playground, commands, quizzes).
 - **Arcade**: a Defender‑style mini‑game controlled with Vim‑like keys.
@@ -104,8 +107,8 @@ Click the arcade panel once to focus its keys.
 
 ## 🤝 Contributing (or just organizing your own work)
 
-1. Create a branch: `git switch -c feat/<short-name>`  
-2. Keep changes small; run `npm run build` before pushing  
+1. Create a branch: `git switch -c feat/<short-name>`
+2. Keep changes small; run `npm run build` before pushing
 3. Open a PR with a short description and a checkbox list of what changed
 
 Suggested labels: `feature`, `bug`, `docs`, `ui`, `gameplay`.
@@ -124,9 +127,9 @@ Suggested labels: `feature`, `bug`, `docs`, `ui`, `gameplay`.
 
 ## 🆘 Troubleshooting
 
-- **Keys don’t work in Arcade** → click the arcade panel to focus; ensure dev server isn’t trapping keys in another tab.  
-- **Build errors** → check the exact file:line Vite prints; run `npx prettier . --write` to fix formatting.  
-- **Push fails** → ensure SSH agent is loaded:  
+- **Keys don’t work in Arcade** → click the arcade panel to focus; ensure dev server isn’t trapping keys in another tab.
+- **Build errors** → check the exact file:line Vite prints; run `npx prettier . --write` to fix formatting.
+- **Push fails** → ensure SSH agent is loaded:
   ```bash
   eval "$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519
   ```
