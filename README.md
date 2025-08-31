@@ -1,5 +1,11 @@
 # Vim Olympics Arcade & Tutor 🕹️📗
 
+[![Built with Vite](https://img.shields.io/badge/Built%20with-Vite-646CFF.svg?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Made with React](https://img.shields.io/badge/Made%20with-React-61DAFB.svg?logo=react&logoColor=black)](https://react.dev/)
+[![Game Engine: Phaser 3](https://img.shields.io/badge/Game%20Engine-Phaser%203-00bcd4.svg?logo=phaser&logoColor=white)](https://phaser.io/)
+[![Styled with TailwindCSS](https://img.shields.io/badge/Styled%20with-TailwindCSS-06B6D4.svg?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+
+
 ## Preview
 ![Screenshot of Vim Olympics Arcade](docs/screenshot.png)
 
