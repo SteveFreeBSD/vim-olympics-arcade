@@ -428,11 +428,11 @@ const Playground = forwardRef(function Playground(_, ref){
     URL.revokeObjectURL(url);
   };
 
-  return(<div className='rounded-3xl border border-slate-700/70 bg-slate-950/70 shadow-[inset_0_1px_0_rgba(255,255,255,.06),0_50px_120px_-60px_rgba(236,72,153,.35)]'>
+  return(<div className='rounded-3xl border border-slate-700/70 bg-slate-950/70 neo-card'>
       <div className='flex flex-col gap-2 border-b border-slate-800/70 bg-gradient-to-b from-slate-900/80 to-slate-950/80 px-4 py-3'>
         <div className='flex items-center justify-between'>
           <div className='text-sm text-slate-300'>
-          Motion Playground <span className='text-slate-500'>(hjkl, 0, ^, $, w/W, e/E, b/B, ge, f/t/F/T, *, gg, G, x (count), dw/cw, yy, p, u, iw/aw, i"/a", i'/a', i)/a), i]/a], i}/a}, i&lt;/a&gt;, marks m '`, macros q/@, . repeat)</span>
+          Motion Playground <span className='text-slate-500'>(hjkl, 0, ^, $, w/W, e/E, b/B, ge, f/t/F/T, *, gg, G, x (count), dw/cw, yy, p, u, iw/aw, quotes, parens, brackets, braces, angles, marks m '`, macros q/@, . repeat)</span>
           </div>
           <div className='flex items-center gap-3'>
           <label className='flex items-center gap-2 text-xs text-slate-300'>

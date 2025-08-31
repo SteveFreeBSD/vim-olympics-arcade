@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState, Suspense } from 'react'
 import Stars from './components/Stars'
 import Fuse from 'fuse.js'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -9,7 +9,8 @@ import Pill from './components/ui/Pill'
 import CommandCard from './components/CommandCard'
 import CommandModal from './components/CommandModal'
 import Quiz from './components/Quiz'
-import Playground from './components/Playground'
+const Playground = React.lazy(() => import('./components/Playground'))
+const ArcadePanel = React.lazy(() => import('./components/ArcadePanel'))
 import data from './data/index.js'
 
 // ✅ Diagnostics imports
@@ -34,6 +35,13 @@ export default function App() {
   const [openItem, setOpenItem] = useState(null)
   const inputRef = useRef(null)
   const playRef = useRef(null)
+  const [showArcade, setShowArcade] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('prefs.arcade') || 'true') } catch { return true }
+  })
+  const [showPlay, setShowPlay] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('prefs.play') || 'true') } catch { return true }
+  })
+  const [arcOpen, setArcOpen] = useState(true)
   const cats = ['All', ...data.groups.map(g => g.category)]
   const ALL = useMemo(
     () => data.groups.flatMap(g => g.items.map(it => ({ ...it, cat: g.category }))),
@@ -131,6 +139,8 @@ export default function App() {
   useEffect(() => { try { localStorage.setItem('prefs.plugins', JSON.stringify(plugins)) } catch{} }, [plugins])
   useEffect(() => { try { localStorage.setItem('prefs.dense', JSON.stringify(dense)) } catch{} }, [dense])
   useEffect(() => { try { localStorage.setItem('prefs.practice', JSON.stringify(practice)) } catch{} }, [practice])
+  useEffect(() => { try { localStorage.setItem('prefs.arcade', JSON.stringify(showArcade)) } catch{} }, [showArcade])
+  useEffect(() => { try { localStorage.setItem('prefs.play', JSON.stringify(showPlay)) } catch{} }, [showPlay])
   const actions = [
     { title: 'Focus search', kbd: '/', run: () => inputRef.current?.focus() },
     { title: 'Toggle Plugins', kbd: 'Ctrl+P', run: () => setPlugins(v => !v) },
@@ -170,6 +180,7 @@ export default function App() {
   const openDetails=(item,opts={})=>setOpenItem({...item,_opts:opts});
   const closeDetails=()=>setOpenItem(null);
   const sendTutorialToPlayground=(item)=>{
+    setShowPlay(true)
     const api = playRef.current;
     if(!api) return;
     if(item.tutorial?.buffer) api.setBuffer(item.tutorial.buffer);
@@ -186,9 +197,9 @@ export default function App() {
     <ErrorBoundary>
       <main className={'max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[300px,1fr] gap-6'+(dense?'':' md:gap-8')}>
         <aside className='space-y-4'>
-          <div className='rounded-3xl border border-slate-700/70 bg-slate-900/70 p-4'>
+          <div className='rounded-3xl border border-slate-700/70 bg-slate-900/70 p-4 neo-card'>
             <div className='text-xs uppercase tracking-wide text-slate-300 mb-2'>Search</div>
-            <input ref={inputRef} value={q} onChange={e=>setQ(e.target.value)} placeholder='Find keys or actions (try: delete to ) )' className='w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500'/>
+            <input ref={inputRef} value={q} onChange={e=>setQ(e.target.value)} placeholder='Find keys or actions (try: delete to ) )' className='w-full neo-input focus:ring-2 focus:ring-cyan-500'/>
             {!!nlq.length && (
               <div className='mt-2 text-xs text-slate-400 space-y-1'>
                 <div className='opacity-80'>Suggestions</div>
@@ -200,16 +211,18 @@ export default function App() {
               </div>
             )}
           </div>
-          <div className='rounded-3xl border border-slate-700/70 bg-slate-900/70 p-4'><div className='text-xs uppercase tracking-wide text-slate-300 mb-2'>Categories</div>
+          <div className='rounded-3xl border border-slate-700/70 bg-slate-900/70 p-4 neo-card'><div className='text-xs uppercase tracking-wide text-slate-300 mb-2'>Categories</div>
             <div className='flex flex-wrap gap-2'>{cats.map(c=>(<Pill key={c} active={cat===c} onClick={()=>setCat(c)}>{c}</Pill>))}</div>
           </div>
-          <div className='rounded-3xl border border-slate-700/70 bg-slate-900/70 p-4 space-y-3'><div className='text-xs uppercase tracking-wide text-slate-300'>View</div>
+          <div className='rounded-3xl border border-slate-700/70 bg-slate-900/70 p-4 space-y-3 neo-card'><div className='text-xs uppercase tracking-wide text-slate-300'>View</div>
             <div className='flex items-center justify-between'><span className='text-sm'>Show plugin extras</span><Toggle label='' checked={plugins} onChange={setPlugins}/></div>
             <div className='flex items-center justify-between'><span className='text-sm'>Compact density</span><Toggle label='' checked={dense} onChange={setDense}/></div>
             <div className='flex items-center justify-between'><span className='text-sm'>Practice mode</span><Toggle label='' checked={practice} onChange={setPractice}/></div>
+            <div className='flex items-center justify-between'><span className='text-sm'>Arcade panel</span><Toggle label='' checked={showArcade} onChange={setShowArcade}/></div>
+            <div className='flex items-center justify-between'><span className='text-sm'>Motion playground</span><Toggle label='' checked={showPlay} onChange={setShowPlay}/></div>
             <div className='pt-1 text-slate-300 text-xs opacity-80'>Total shown: <span className='text-slate-100 font-medium'>{total}</span></div>
           </div>
-          <div className='rounded-3xl border border-slate-700/70 bg-slate-900/70 p-4'><div className='text-xs uppercase tracking-wide text-slate-300 mb-2'>Quick tips</div>
+          <div className='rounded-3xl border border-slate-700/70 bg-slate-900/70 p-4 neo-card'><div className='text-xs uppercase tracking-wide text-slate-300 mb-2'>Quick tips</div>
             <ul className='text-sm list-disc ml-5 space-y-1'>{data.tips.map((t,i)=>(<li key={i} className='text-slate-200'>{t.text}</li>))}</ul>
           </div>
         </aside>
@@ -217,9 +230,11 @@ export default function App() {
           {practice&&(
             <div className='space-y-4'>
               <div className='flex items-center justify-between'>
-                <h2 className='text-lg font-semibold tracking-tight text-slate-100 drop-shadow'>Practice Mode</h2>
+                <h2 className='text-lg font-semibold tracking-tight text-slate-100 drop-shadow'>
+                  <span className='chrome-text'>Practice Mode</span>
+                </h2>
                 <div className='flex items-center gap-2 text-slate-300 text-sm'>
-                  <div>Quiz and Motion Playground</div>
+                  <div>Quiz • Arcade • Playground</div>
                   <label className='inline-flex items-center gap-2 px-2 py-1 rounded-lg border border-slate-600 cursor-pointer hover:bg-slate-800'>
                     <input type='file' accept='application/json' className='hidden' onChange={async (e)=>{
                       try{
@@ -234,9 +249,33 @@ export default function App() {
                   </label>
                 </div>
               </div>
-              <Quiz items={ALL} includePlugins={plugins}/>
+
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+                <div className='md:col-span-2'>
+                  <Quiz items={ALL} includePlugins={plugins}/>
+                </div>
+              </div>
+              {showArcade && (
+                <div className='rounded-3xl border border-slate-700/70 bg-slate-900/70 neo-card'>
+                  <button onClick={()=>setArcOpen(o=>!o)} className='w-full flex items-center justify-between px-4 py-2 text-slate-200'>
+                    <span>Arcade</span>
+                    <span className='text-slate-400 text-sm'>{arcOpen ? '−' : '+'}</span>
+                  </button>
+                  {arcOpen && (
+                    <div className='p-2'>
+                      <Suspense fallback={<div className='p-4 text-sm text-slate-300'>Loading Arcade…</div>}>
+                        <ArcadePanel/>
+                      </Suspense>
+                    </div>
+                  )}
+                </div>
+              )}
               <div id="playground-anchor"/>
-              <Playground ref={playRef}/>
+              {showPlay && (
+                <Suspense fallback={<div className='rounded-3xl border border-slate-700/70 bg-slate-900/70 p-4 text-sm text-slate-300'>Loading Playground…</div>}>
+                  <Playground ref={playRef}/>
+                </Suspense>
+              )}
             </div>
           )}
           {results.map(group=>(<div key={group.title}><div className='flex items-center justify-between mb-2'><h2 className='text-lg font-semibold tracking-tight text-slate-100 drop-shadow'>{group.title}</h2><div className='text-slate-300 text-sm'>{group.items.length} items</div></div>

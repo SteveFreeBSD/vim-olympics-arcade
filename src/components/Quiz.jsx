@@ -40,7 +40,7 @@ export default function Quiz({ items, includePlugins = true }) {
     setLast({ ok, expected: mode === 'keys->desc' ? q.desc : q.keys })
   }
   return (
-    <div className="rounded-3xl border border-slate-700/70 bg-slate-900/70 p-5 space-y-4 shadow-[inset_0_1px_0_rgba(255,255,255,.06),0_30px_80px_-40px_rgba(34,211,238,.35)]">
+    <div className="rounded-3xl border border-slate-700/70 bg-slate-900/70 p-5 space-y-4 neo-card">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="text-sm text-slate-300 flex items-center gap-2">
           <span>Mode</span>
