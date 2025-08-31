@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/vim-olympics-arcade/sw.js', { scope: '/vim-olympics-arcade/' })})}
