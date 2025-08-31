@@ -10,7 +10,8 @@ export default defineConfig({
       manifest: {
         name: 'Vim Olympics — Arcade',
         short_name: 'Vim Arcade',
-        start_url: '/',
+        start_url: '/vim-olympics-arcade/',
+        scope: '/vim-olympics-arcade/',
         display: 'standalone',
         theme_color: '#0b1220',
         background_color: '#020617',
@@ -20,4 +21,5 @@ export default defineConfig({
       }
     })
   ]
+  base: '/vim-olympics-arcade/',
 })
