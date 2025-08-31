@@ -9,15 +9,18 @@ import Pill from './components/ui/Pill'
 import CommandCard from './components/CommandCard'
 import CommandModal from './components/CommandModal'
 import Quiz from './components/Quiz'
+import Card from './components/ui/Card'
 const Playground = React.lazy(() => import('./components/Playground'))
 const ArcadePanel = React.lazy(() => import('./components/ArcadePanel'))
 import data from './data/index.js'
+import Resources from './components/Resources'
 
 // ✅ Diagnostics imports
 import DebugBanner from './components/DebugBanner'
 import { countDeep } from './deepCount'
 
 const normalize = s => s.toLowerCase().replace(/\s+/g, ' ').trim()
+const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 
 export default function App() {
   const [q, setQ] = useState('')
@@ -154,6 +157,22 @@ export default function App() {
   ]
   const total = results.reduce((n, g) => n + g.items.length, 0)
 
+  const handleCategoryClick = (c) => {
+    if (c === 'All') {
+      setCat('All')
+      requestAnimationFrame(() => {
+        document.querySelector('#results-top')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+      return
+    }
+    // Ensure all categories are visible, then scroll to the section
+    setCat('All')
+    setTimeout(() => {
+      const el = document.getElementById('cat-' + slug(c))
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 0)
+  }
+
   const nlq = useMemo(() => {
     const s = (q || '').toLowerCase()
     if (!s) return []
@@ -175,7 +194,9 @@ export default function App() {
 
   // ✅ Count deep items and log
   const { deep, total: grandTotal } = countDeep(data.groups);
-  console.info('[Vim Olympics] Deep items:', deep, 'of', grandTotal);
+  if ((import.meta?.env && import.meta.env.MODE !== 'production')) {
+    console.info('[Vim Olympics] Deep items:', deep, 'of', grandTotal)
+  }
 
   const openDetails=(item,opts={})=>setOpenItem({...item,_opts:opts});
   const closeDetails=()=>setOpenItem(null);
@@ -212,7 +233,7 @@ export default function App() {
             )}
           </div>
           <div className='rounded-3xl border border-slate-700/70 bg-slate-900/70 p-4 neo-card'><div className='text-xs uppercase tracking-wide text-slate-300 mb-2'>Categories</div>
-            <div className='flex flex-wrap gap-2'>{cats.map(c=>(<Pill key={c} active={cat===c} onClick={()=>setCat(c)}>{c}</Pill>))}</div>
+            <div className='flex flex-wrap gap-2'>{cats.map(c=>(<Pill key={c} active={cat===c} onClick={()=>handleCategoryClick(c)}>{c}</Pill>))}</div>
           </div>
           <div className='rounded-3xl border border-slate-700/70 bg-slate-900/70 p-4 space-y-3 neo-card'><div className='text-xs uppercase tracking-wide text-slate-300'>View</div>
             <div className='flex items-center justify-between'><span className='text-sm'>Show plugin extras</span><Toggle label='' checked={plugins} onChange={setPlugins}/></div>
@@ -222,11 +243,13 @@ export default function App() {
             <div className='flex items-center justify-between'><span className='text-sm'>Motion playground</span><Toggle label='' checked={showPlay} onChange={setShowPlay}/></div>
             <div className='pt-1 text-slate-300 text-xs opacity-80'>Total shown: <span className='text-slate-100 font-medium'>{total}</span></div>
           </div>
-          <div className='rounded-3xl border border-slate-700/70 bg-slate-900/70 p-4 neo-card'><div className='text-xs uppercase tracking-wide text-slate-300 mb-2'>Quick tips</div>
+          <Card><div className='text-xs uppercase tracking-wide text-slate-300 mb-2'>Quick tips</div>
             <ul className='text-sm list-disc ml-5 space-y-1'>{data.tips.map((t,i)=>(<li key={i} className='text-slate-200'>{t.text}</li>))}</ul>
-          </div>
+          </Card>
+          <Resources />
         </aside>
         <section className='space-y-8'>
+          <div id='results-top' />
           {practice&&(
             <div className='space-y-4'>
               <div className='flex items-center justify-between'>
@@ -278,7 +301,7 @@ export default function App() {
               )}
             </div>
           )}
-          {results.map(group=>(<div key={group.title}><div className='flex items-center justify-between mb-2'><h2 className='text-lg font-semibold tracking-tight text-slate-100 drop-shadow'>{group.title}</h2><div className='text-slate-300 text-sm'>{group.items.length} items</div></div>
+          {results.map(group=>(<div key={group.title} id={'cat-'+slug(group.title)}><div className='flex items-center justify-between mb-2'><h2 className='text-lg font-semibold tracking-tight text-slate-100 drop-shadow'>{group.title}</h2><div className='text-slate-300 text-sm'>{group.items.length} items</div></div>
             <div className='grid [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))] gap-3'>{group.items.map((it,idx)=>(
               <CommandCard key={idx} item={it} onOpen={openDetails} query={q} />
             ))}</div></div>))}

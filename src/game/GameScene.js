@@ -201,11 +201,7 @@ export default class GameScene extends Phaser.Scene {
     return best
   }
 
-  nose(){
-    const a = Phaser.Math.DegToRad(this.player.angle || 0)
-    const dl = (this.player.displayWidth || 32) * 0.45
-    return { x: this.player.x + Math.cos(a) * dl, y: this.player.y + Math.sin(a) * dl }
-  }
+  // nose() was used by the old single-gun firing; no longer needed
 
   tryFire(){
     const now = this.time.now || performance.now(); if (now < (this.lastShot||0)+(this.fireCd||200)) return
