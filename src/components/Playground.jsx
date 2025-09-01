@@ -144,10 +144,18 @@ const Playground = forwardRef(function Playground(_, ref){
     if (awaitJumpMark){ if(/^[a-z]$/.test(k)){ const pos=marks[k]; if(pos){ setRow(pos.row); setCol(clamp(pos.col)); } } setAwaitJumpMark(null); return; }
     // Insert mode typing
     if (insertMode){
-      if (k==='Escape' || k==='Enter') { 
+      if (k==='Escape') { 
         setInsertMode(false); setPending('');
         if(insertFromChange){ setLastChange({kind:'cw', count: changeCount||1, text: insertText}); setInsertFromChange(false); }
         return; 
+      }
+      if (k==='Enter'){
+        pushHist();
+        const s=buf[row]||'';
+        const i=Math.max(0, Math.min(col, s.length));
+        const nb=[...buf]; nb[row]=s.slice(0,i); nb.splice(row+1,0,s.slice(i));
+        setBuf(nb); setRow(row+1); setCol(0);
+        return;
       }
       if (k==='Backspace'){
         const s=buf[row]||''; const i=Math.max(0,col-1); if(col>0){
@@ -156,7 +164,7 @@ const Playground = forwardRef(function Playground(_, ref){
         return;
       }
       if (k.length===1 && !e.ctrlKey && !e.metaKey && !e.altKey){
-        const s=buf[row]||''; const i=clamp(col);
+        const s=buf[row]||''; const i=Math.max(0, Math.min(col, s.length));
         const nb=[...buf]; nb[row]=s.slice(0,i)+k+s.slice(i); setBuf(nb); setCol(i+1);
         if(insertFromChange) setInsertText(t=>t+k);
         return;
@@ -268,6 +276,44 @@ const Playground = forwardRef(function Playground(_, ref){
     }
     // Macro replay '@' awaits register
     if (k==='@'){ setAwaitChar({op:'@', count: Math.max(1,parseInt(countStr||'1',10))}); setPending(''); return; }
+
+    // Enter insert mode directly
+    if (k==='i' && !opPending){
+      setInsertMode(true);
+      setInsertFromChange(false);
+      setInsertText('');
+      setChangeCount(1);
+      recordOp('i', countStr);
+      setPending('');
+      return;
+    }
+
+    // Insert variants: a, A, I, o, O
+    if (k==='a' && !opPending){
+      const s = buf[row]||''; setCol(c=>Math.min((s||'').length, c+1));
+      setInsertMode(true); setInsertFromChange(false); setInsertText(''); setChangeCount(1);
+      recordOp('a', countStr); setPending(''); return;
+    }
+    if (k==='A' && !opPending){
+      const s = buf[row]||''; setCol(Math.max(0, s.length));
+      setInsertMode(true); setInsertFromChange(false); setInsertText(''); setChangeCount(1);
+      recordOp('A', countStr); setPending(''); return;
+    }
+    if (k==='I' && !opPending){
+      const s = buf[row]||''; setCol(firstNonBlank(s));
+      setInsertMode(true); setInsertFromChange(false); setInsertText(''); setChangeCount(1);
+      recordOp('I', countStr); setPending(''); return;
+    }
+    if (k==='o' && !opPending){
+      pushHist(); const nb=[...buf]; nb.splice(row+1,0,''); setBuf(nb); setRow(r=>Math.min(nb.length-1, r+1)); setCol(0);
+      setInsertMode(true); setInsertFromChange(false); setInsertText(''); setChangeCount(1);
+      recordOp('o', countStr); setPending(''); return;
+    }
+    if (k==='O' && !opPending){
+      pushHist(); const nb=[...buf]; nb.splice(row,0,''); setBuf(nb); setRow(r=>r); setCol(0);
+      setInsertMode(true); setInsertFromChange(false); setInsertText(''); setChangeCount(1);
+      recordOp('O', countStr); setPending(''); return;
+    }
 
     // Operators: d, c, y with simple motions
     if (k==='d' || k==='c' || k==='y'){
@@ -432,7 +478,7 @@ const Playground = forwardRef(function Playground(_, ref){
       <div className='flex flex-col gap-2 border-b border-slate-800/70 bg-gradient-to-b from-slate-900/80 to-slate-950/80 px-4 py-3'>
         <div className='flex items-center justify-between'>
           <div className='text-sm text-slate-300'>
-          Motion Playground <span className='text-slate-500'>(hjkl, 0, ^, $, w/W, e/E, b/B, ge, f/t/F/T, *, gg, G, x (count), dw/cw, yy, p, u, iw/aw, quotes, parens, brackets, braces, angles, marks m '`, macros q/@, . repeat)</span>
+          Motion Playground <span className='text-slate-500'>(hjkl, 0, ^, $, w/W, e/E, b/B, ge, f/t/F/T, *, gg, G, x (count), dw/cw, yy, p, u, i, a/A/I/o/O, Enter newline, iw/aw, quotes, parens, brackets, braces, angles, marks m '`, macros q/@, . repeat)</span>
           </div>
           <div className='flex items-center gap-3'>
           <label className='flex items-center gap-2 text-xs text-slate-300'>

@@ -15,6 +15,11 @@ export default class GameScene extends Phaser.Scene {
     this.maxSpeed = 140
     this.lastAngle = 0; this.lastShot = 0; this.fireCd = 200
     this.thrust = { f:false, b:false, l:false, r:false }
+    // dash timing (double-tap window for 'w')
+    this._lastW = 0; this._dashGap = 250
+    // audio
+    this.muted = false; this._ctx = null; this.masterGain = null; this.noiseBuffer = null
+    this.audioUnlockedAt = 0; this.lastSfx = { fire: 0, hit: 0, dash: 0, lock: 0 }
   }
 
   preload() {
@@ -60,18 +65,7 @@ export default class GameScene extends Phaser.Scene {
     this.player.scaleY = this.player.scaleX
     this.player.body?.setSize?.(40, 28)
 
-    // Optional external ship override (kept for dev convenience)
-    try {
-      const img = new Image(); img.decoding = 'async'; img.crossOrigin = 'anonymous'
-      img.onload = () => { try {
-        const key = 'ship-ext'; if (this.textures.exists(key)) this.textures.remove(key)
-        this.textures.addImage(key, img)
-        const desiredW = 64; const w = img.naturalWidth || img.width || desiredW
-        const sc = Math.min(1, desiredW / w)
-        this.player.setTexture(key).setScale(sc); this.player.body?.setSize?.(40, 28)
-      } catch {} }
-      img.onerror = () => {}; img.src = '/ship.png'
-    } catch {}
+    // External ship override removed for clarity; rely on bundled asset + vector fallback
 
     // Groups
     this.enemies = this.physics.add.group({ maxSize: 48 })
@@ -82,13 +76,27 @@ export default class GameScene extends Phaser.Scene {
     this.lockG = this.add.graphics({ lineStyle: { width: 1, color: 0x22d3ee, alpha: 0.7 } }).setDepth(10)
     this.ui = {}
     this.ui.controls = this.add.text(this.scale.width/2, 4,
-      'ws thrust • ad strafe • hjkl move • x/space fire',
+      'ws thrust • ad/hjkl move • x/Space fire • w/b dash • f<char> lock',
       { fontSize: '14px', color: '#cbd5e1' }).setOrigin(0.5, 0).setDepth(10)
     this.ui.score = this.add.text(10, 30, 'score: 0', { fontSize: '14px', color: '#cbd5e1' }).setDepth(10)
+    // Settings
+    try { this.muted = (localStorage.getItem('prefs.arcadeMuted') === '1') } catch {}
+    this.audioDebug = !!((import.meta?.env && import.meta.env.DEV) && (/\bdebug=audio\b/.test((window.location.search||'')) || (localStorage.getItem('dev.audioDebug') === '1')))
+    // Mute icon (top-right)
+    this.ui.mute = this.add.text(this.scale.width - 8, 4, this.muted ? '🔇' : '🔊', { fontSize: '14px', color: '#cbd5e1' })
+      .setOrigin(1, 0).setDepth(10).setInteractive({ useHandCursor: true })
+    this.ui.mute.on('pointerdown', () => this.toggleMute())
+    // Optional audio debug HUD
+    if (this.audioDebug) {
+      this.ui.audio = this.add.text(this.scale.width - 6, this.scale.height - 6, 'audio: init', { fontSize: '10px', color: '#67e8f9' })
+        .setOrigin(1, 1).setDepth(10)
+      this.ui.audioBtn = this.add.text(this.scale.width - 6, this.scale.height - 22, 'Enable Audio', { fontSize: '10px', color: '#0b1220', backgroundColor: '#67e8f9', padding: { x: 6, y: 3 } })
+        .setOrigin(1, 1).setDepth(10).setInteractive({ useHandCursor: true })
+    }
     this.helpOpen = false
     this.ui.help = this.add.rectangle(0,0,this.scale.width,this.scale.height,0x000000,0.65).setOrigin(0).setDepth(20).setVisible(false)
     this.ui.helpText = this.add.text(this.scale.width/2, this.scale.height/2,
-      'CONTROLS\n\nhjkl : move\nx    : fire\nw/e/b : dash (soon)\nf<char> : lock (soon)\n\nPress ? to close',
+      'CONTROLS\n\nhjkl : move\nx or Space : fire\nw/b : dash\nf<char> : lock-on\nm : mute\n\nPress ? to close',
       { fontSize: '16px', color: '#e2e8f0', align: 'center' }).setOrigin(0.5).setDepth(21).setVisible(false)
 
     // FX
@@ -97,6 +105,29 @@ export default class GameScene extends Phaser.Scene {
     this.exhaustFx = this.add.particles(0, 0, 'dot', { on: false, lifespan: 260, speed: { min: 25, max: 70 }, scale: { start: 0.5, end: 0 }, blendMode: 'ADD' })
     this.timerText = this.add.text(634, 4, String(this.timeLeft), { fontSize: '10px', color: '#fca5a5' }).setOrigin(1,0).setDepth(10)
     this.glow = this.add.particles(this.player.x, this.player.y, 'dot', { lifespan: 250, speed: {min:10,max:25}, quantity: 2, scale: { start: 0.8, end: 0 }, blendMode: 'ADD' })
+
+    // Audio setup (synthesised SFX; no external assets)
+    try {
+      if (this.sound && this.sound.context) {
+        this._ctx = this.sound.context
+        this.masterGain = this._ctx.createGain()
+        this.masterGain.gain.value = 0.2
+        this.masterGain.connect(this._ctx.destination)
+        this.noiseBuffer = this._makeNoiseBuffer(this._ctx)
+        const tryUnlock = () => {
+          try { this._ctx.resume().then(()=>{ this.audioUnlockedAt = performance.now(); if(this.audioDebug) console.info('[Arcade] AudioContext resumed') }) } catch {}
+          try { this.sound.unlock?.(); if(this.audioDebug) console.info('[Arcade] Phaser sound.unlock() called') } catch {}
+        }
+        this.input.once('pointerdown', tryUnlock)
+        this.input.keyboard?.once('keydown', tryUnlock)
+        this.sound.on?.('unlocked', () => { this.audioUnlockedAt = performance.now(); if(this.audioDebug) console.info('[Arcade] Phaser sound unlocked') })
+        if (this.audioDebug) {
+          // Fallback listeners and button only in debug mode
+          try { window.addEventListener('pointerdown', tryUnlock, { once: true }); window.addEventListener('keydown', tryUnlock, { once: true }) } catch {}
+          this.ui.audioBtn?.on('pointerdown', () => tryUnlock())
+        }
+      }
+    } catch (e) { if(this.audioDebug) console.warn('[Arcade] Audio init failed', e) }
 
     // Spawners and AI
     const MARGIN = 32
@@ -155,13 +186,24 @@ export default class GameScene extends Phaser.Scene {
       if (code==='ArrowLeft') k='h'; else if (code==='ArrowRight') k='l'; else if (code==='ArrowUp') k='k'; else if (code==='ArrowDown') k='j'
       if (k==='?') { this.helpOpen=!this.helpOpen; this.ui.help.setVisible(this.helpOpen); this.ui.helpText.setVisible(this.helpOpen); return }
       if (this.gameOver) return
-      if (this.awaitChar) { this.awaitChar = false; const t = this.findNearestByLabel(k); if (t){ this.target = t; t.setTint(0xffffff) } return }
+      if (this.awaitChar) { this.awaitChar = false; const t = this.findNearestByLabel(k); if (t){ this.target = t; t.setTint(0xffffff); this.playLockSfx?.() } return }
+      if (k==='m') { this.muted = !this.muted; return }
+      // Dash: double-tap 'w' to dash forward; press 'b' to dash back
+      if (k==='w'){
+        const now = this.time.now || performance.now();
+        if (now - (this._lastW||0) <= this._dashGap) { this.dash(+1, 0) }
+        this._lastW = now
+      } else if (k==='b'){
+        this.dash(-1, 0)
+      }
       if (k==='w'||k==='j') this.thrust.f = true
       else if (k==='s'||k==='k') this.thrust.b = true
       else if (k==='a'||k==='h') this.thrust.l = true
       else if (k==='d'||k==='l') this.thrust.r = true
       else if (k==='f') this.awaitChar = true
       else if (k==='x' || code==='Space') this.tryFire()
+      else if (k==='m') { this.toggleMute(); return }
+      else if (k==='t' && this.audioDebug) { this.playFireSfx?.(); console.info('[Arcade] Test beep fired') }
     }
     this._onKeyUp = e => {
       const code = e.code || ''; let k = (e.key || '').toLowerCase()
@@ -188,6 +230,7 @@ export default class GameScene extends Phaser.Scene {
   dash(dx, dy){
     const d = 64, nx = Phaser.Math.Clamp(this.player.x + dx*d, 8, 632), ny = Phaser.Math.Clamp(this.player.y + dy*d, 8, 352)
     this.tweens.add({ targets: this.player, x: nx, y: ny, duration: 120, ease: 'Quad.easeOut' })
+    this.playDashSfx?.()
   }
 
   findNearestByLabel(ch){
@@ -206,9 +249,16 @@ export default class GameScene extends Phaser.Scene {
   tryFire(){
     const now = this.time.now || performance.now(); if (now < (this.lastShot||0)+(this.fireCd||200)) return
     this.lastShot = now
-    const rot = this.player.rotation
-    const dir = new Phaser.Math.Vector2(Math.cos(rot), Math.sin(rot))
-    const side = new Phaser.Math.Vector2(-Math.sin(rot), Math.cos(rot))
+    // Aim forward, or towards locked target if present
+    let dir
+    if (this.target && this.target.active){
+      dir = new Phaser.Math.Vector2(this.target.x - this.player.x, this.target.y - this.player.y)
+      if (dir.lengthSq() > 0.0001) dir.normalize(); else dir = new Phaser.Math.Vector2(1,0)
+    } else {
+      const rot = this.player.rotation
+      dir = new Phaser.Math.Vector2(Math.cos(rot), Math.sin(rot))
+    }
+    const side = new Phaser.Math.Vector2(-dir.y, dir.x)
     const forwardOffset = 10, sideOffset = 8
     const base = new Phaser.Math.Vector2(this.player.x, this.player.y).add(dir.clone().scale(forwardOffset))
     const leftPos  = base.clone().add(side.clone().scale(+sideOffset))
@@ -222,6 +272,7 @@ export default class GameScene extends Phaser.Scene {
       this.time.delayedCall(1200, () => { if (b.active) { this.bullets.killAndHide(b); b.body.enable = false } })
       this.muzzleFx?.explode(Phaser.Math.Between(8,10), p.x, p.y)
     })
+    this.playFireSfx?.()
   }
 
   onHit(b,e){
@@ -234,6 +285,7 @@ export default class GameScene extends Phaser.Scene {
     e.disableBody(true, true)
     this.score = (this.score || 0) + 10
     this.ui?.score?.setText('score: ' + this.score)
+    this.playHitSfx?.()
   }
 
   endGame(){
@@ -275,6 +327,21 @@ export default class GameScene extends Phaser.Scene {
     const tail = { x: this.player.x - Math.cos(a) * (this.player.displayWidth * 0.35), y: this.player.y - Math.sin(a) * (this.player.displayWidth * 0.35) }
     if (this.exhaustFx && this.exhaustFx.on) this.exhaustFx.setPosition(tail.x, tail.y)
     if (this.glow && Math.random() < 0.9) this.glow.emitParticleAt(tail.x, tail.y, 1)
+
+    // Audio HUD (debug only)
+    if (this.audioDebug && this.ui?.audio) {
+      const state = this._ctx?.state || 'n/a'
+      const m = this.muted ? 'muted' : 'on'
+      const unlocked = this.audioUnlockedAt ? 'unlocked' : 'locked'
+      this.ui.audio.setText(`audio: ${state} • ${unlocked} • ${m}`)
+      // keep bottom-right anchored (in case of resize in future)
+      this.ui.audio.setPosition(this.scale.width - 6, this.scale.height - 6)
+      this.ui.audioBtn?.setPosition(this.scale.width - 6, this.scale.height - 22)
+      const isRunning = (this._ctx && this._ctx.state === 'running')
+      this.ui.audioBtn?.setVisible(!isRunning)
+    }
+    // Keep mute icon in top-right
+    this.ui?.mute?.setPosition(this.scale.width - 8, 4)
   }
 
   onShutdown(){
@@ -283,4 +350,52 @@ export default class GameScene extends Phaser.Scene {
     this.spawnEvt?.remove(); this.timerEvt?.remove(); this.rampEvt?.remove(); this.seekEvt?.remove()
     this.glow?.destroy(); this.hitFx?.destroy(); this.muzzleFx?.destroy(); this.exhaustFx?.destroy()
   }
+  toggleMute(){
+    this.muted = !this.muted
+    try { localStorage.setItem('prefs.arcadeMuted', this.muted ? '1' : '0') } catch {}
+    if (this.ui?.mute) this.ui.mute.setText(this.muted ? '🔇' : '🔊')
+  }
+
+  // --- Simple synthesised SFX (WebAudio) ---
+  _makeNoiseBuffer(ctx){
+    try {
+      const len = Math.floor(ctx.sampleRate * 0.25)
+      const buf = ctx.createBuffer(1, len, ctx.sampleRate)
+      const data = buf.getChannelData(0)
+      for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1
+      return buf
+    } catch { return null }
+  }
+  _playBeep(freqA, freqB, dur, vol, type='square'){
+    if (!this._ctx || !this.masterGain || this.muted) { if(this.audioDebug) console.warn('[Arcade] Beep skipped — ctx or master missing, or muted'); return }
+    const ctx = this._ctx
+    const o = ctx.createOscillator()
+    const g = ctx.createGain()
+    o.type = type
+    // slight variation for fun
+    const fA = (freqA||440) * (1 + (Math.random()*0.06 - 0.03))
+    const fB = (freqB||fA) * (1 + (Math.random()*0.04 - 0.02))
+    o.frequency.setValueAtTime(Math.max(40, fA), ctx.currentTime)
+    if (freqB && freqB !== freqA) o.frequency.exponentialRampToValueAtTime(Math.max(40, fB), ctx.currentTime + dur)
+    g.gain.setValueAtTime(0.0001, ctx.currentTime)
+    g.gain.linearRampToValueAtTime(Math.max(0.0001, vol||0.05), ctx.currentTime + 0.01)
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur)
+    o.connect(g); g.connect(this.masterGain)
+    o.start(); o.stop(ctx.currentTime + dur + 0.02)
+  }
+  _playNoise(dur, vol, lpFreq){
+    if (!this._ctx || !this.masterGain || this.muted || !this.noiseBuffer) { if(this.audioDebug) console.warn('[Arcade] Noise skipped — ctx/master/noise missing, or muted'); return }
+    const ctx = this._ctx
+    const src = ctx.createBufferSource(); src.buffer = this.noiseBuffer; src.loop = true
+    const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(Math.max(100, lpFreq||1200), ctx.currentTime)
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, ctx.currentTime)
+    g.gain.linearRampToValueAtTime(Math.max(0.0001, vol||0.06), ctx.currentTime + 0.01)
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur)
+    src.connect(f); f.connect(g); g.connect(this.masterGain)
+    src.start(); src.stop(ctx.currentTime + dur + 0.05)
+  }
+  playFireSfx(){ this.lastSfx.fire = performance.now(); this._playBeep(880, 520, 0.08, 0.12, 'square') }
+  playHitSfx(){ this.lastSfx.hit = performance.now(); this._playNoise(0.18, 0.12, 1400); this._playBeep(220, 110, 0.12, 0.08, 'sawtooth') }
+  playDashSfx(){ this.lastSfx.dash = performance.now(); this._playNoise(0.12, 0.1, 800) }
+  playLockSfx(){ this.lastSfx.lock = performance.now(); this._playBeep(660, 660, 0.06, 0.08, 'triangle') }
 }

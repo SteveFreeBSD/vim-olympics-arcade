@@ -4,6 +4,7 @@
 [![Made with React](https://img.shields.io/badge/Made%20with-React-61DAFB.svg?logo=react&logoColor=black)](https://react.dev/)
 [![Game Engine: Phaser 3](https://img.shields.io/badge/Game%20Engine-Phaser%203-00bcd4.svg?logo=phaser&logoColor=white)](https://phaser.io/)
 [![Styled with TailwindCSS](https://img.shields.io/badge/Styled%20with-TailwindCSS-06B6D4.svg?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![CI](https://github.com/SteveFreeBSD/vim-olympics-arcade/actions/workflows/ci.yml/badge.svg)](https://github.com/SteveFreeBSD/vim-olympics-arcade/actions/workflows/ci.yml)
 
 
 ## Preview
@@ -14,6 +15,9 @@ An **interactive Vim learning app** with two personalities:
 - **Arcade**: a Defender‑style mini‑game controlled with Vim‑like keys.
 
 Built with **React + Vite + TailwindCSS** for UI and **Phaser 3** for the arcade panel.
+
+Live demo (GitHub Pages):
+https://stevefreebsd.github.io/vim-olympics-arcade/
 
 ---
 
@@ -83,6 +87,11 @@ Build for production:
 npm run build
 ```
 
+Run tests:
+```bash
+npm test
+```
+
 If you prefer Docker or a different Node version, note that Vite is happiest on Node 18+.
 
 ---
@@ -92,12 +101,17 @@ If you prefer Docker or a different Node version, note that Vite is happiest on 
 **Playground**
 - `h j k l` move • `0` / `$` line start/end
 - `w b e ge` word motions • `gg` / `G` buffer start/end
-- `x` delete char • `u` undo
+- `x` delete char • `u` undo • `i`/`Esc` insert mode
+- `a/A/I/o/O` insert variants • `Enter` newline
 
 **Arcade**
 - `h/l` strafe • `j` thrust • `k` brake
 - `x` fire (dual guns)
-- `f<char>` lock (planned) • `w/b` dash (planned)
+- `f<char>` lock-on • `w/b` dash (double-tap w)
+- `m` mute SFX
+
+Palette helpers:
+- `Mark Visible Done` and `Unmark Visible` to quickly flag lessons.
 
 Click the arcade panel once to focus its keys.
 
@@ -118,6 +132,13 @@ Click the arcade panel once to focus its keys.
 3. Open a PR with a short description and a checkbox list of what changed
 
 Suggested labels: `feature`, `bug`, `docs`, `ui`, `gameplay`.
+
+See CONTRIBUTING.md for full guidelines. CI runs tests and build on PRs.
+
+Deploy to GitHub Pages (GitHub Actions):
+- Enable Pages: Settings → Pages → Build and deployment → Source: GitHub Actions.
+- Push to `main` (or use “Run workflow” in Actions). The Deploy Pages workflow builds, tests, and publishes `dist`.
+Note: `vite.config.js` `base` is set to `/vim-olympics-arcade/` for this repo.
 
 ---
 

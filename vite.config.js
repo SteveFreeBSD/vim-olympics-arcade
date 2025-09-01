@@ -4,6 +4,12 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   base: '/vim-olympics-arcade/',
+  test: {
+    environment: 'jsdom',
+    setupFiles: './vitest.setup.js',
+    globals: true,
+    css: true,
+  },
 
   plugins: [
     react(),
@@ -24,4 +30,3 @@ export default defineConfig({
     })
   ]
 })
-

@@ -8,7 +8,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "predeploy": "vite build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "echo 'Use GitHub Actions deploy (see .github/workflows/deploy.yml)'",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage"
   },
   "dependencies": {
     "fuse.js": "6.6.2",
@@ -17,17 +20,21 @@
     "react-dom": "18.3.1"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
+    "@testing-library/user-event": "^14.6.1",
     "@eslint/js": "^9.34.0",
     "@vitejs/plugin-react": "4.3.3",
     "autoprefixer": "10.4.19",
     "eslint": "^9.34.0",
     "eslint-plugin-react": "^7.37.5",
-    "gh-pages": "^6.3.0",
     "globals": "^16.3.0",
+    "jsdom": "^25.0.1",
     "postcss": "8.4.41",
     "prettier": "^3.6.2",
     "tailwindcss": "3.4.13",
     "vite": "5.4.8",
-    "vite-plugin-pwa": "^0.20.0"
+    "vite-plugin-pwa": "^0.20.0",
+    "vitest": "^2.1.4"
   }
 }

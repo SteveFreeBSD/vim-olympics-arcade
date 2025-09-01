@@ -1,7 +1,7 @@
 import React from 'react'
 import CopyButton from './ui/CopyButton'
 
-export default function CommandCard({ item, onOpen, query = '' }) {
+export default function CommandCard({ item, onOpen, query = '', done=false, onToggleDone }) {
   const q = String(query || '').trim().toLowerCase()
   const hi = (text) => {
     const s = String(text || '')
@@ -59,7 +59,17 @@ export default function CommandCard({ item, onOpen, query = '' }) {
           )}
         </div>
       </div>
-      <CopyButton text={item.keys} />
+      <div className="flex items-center gap-2">
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleDone && onToggleDone() }}
+          className={'px-2 py-1 rounded border text-xs ' + (done ? 'border-emerald-400 text-emerald-200 bg-emerald-500/10' : 'border-slate-600 text-slate-300')}
+          aria-pressed={done}
+          title={done ? 'Mark as not done' : 'Mark as done'}
+        >
+          {done ? '✓ Done' : 'Mark'}
+        </button>
+        <CopyButton text={item.keys} />
+      </div>
     </div>
   )
 }

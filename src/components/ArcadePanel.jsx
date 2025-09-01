@@ -17,6 +17,7 @@ export default function ArcadePanel() {
       pixelArt: false,
       render: { antialias: true },
       physics: { default: 'arcade', arcade: { gravity: { y: 0 }, debug: false } },
+      audio: { disableWebAudio: false, noAudio: false },
       scene: GameScene,
     })
     return () => game?.destroy(true)
@@ -31,4 +32,3 @@ export default function ArcadePanel() {
     </div>
   )
 }
-

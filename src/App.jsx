@@ -10,10 +10,12 @@ import CommandCard from './components/CommandCard'
 import CommandModal from './components/CommandModal'
 import Quiz from './components/Quiz'
 import Card from './components/ui/Card'
+import Toast from './components/ui/Toast'
 const Playground = React.lazy(() => import('./components/Playground'))
 const ArcadePanel = React.lazy(() => import('./components/ArcadePanel'))
 import data from './data/index.js'
 import Resources from './components/Resources'
+import sanitizeLesson from './utils/lessonValidation.js'
 
 // ✅ Diagnostics imports
 import DebugBanner from './components/DebugBanner'
@@ -46,10 +48,26 @@ export default function App() {
   })
   const [arcOpen, setArcOpen] = useState(true)
   const cats = ['All', ...data.groups.map(g => g.category)]
+  const makeId = (cat, keys, desc) => {
+    const s = `${cat}__${String(keys||'')}__${String(desc||'')}`
+    return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+  }
   const ALL = useMemo(
-    () => data.groups.flatMap(g => g.items.map(it => ({ ...it, cat: g.category }))),
+    () => data.groups.flatMap(g => g.items.map(it => ({ ...it, cat: g.category, id: makeId(g.category, it.keys, it.desc) }))),
     [],
   )
+  // Progress state (done map: id -> true)
+  const [done, setDone] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('progress.done') || '{}') } catch { return {} }
+  })
+  const toggleDone = (id) => {
+    setDone(prev => {
+      const next = { ...prev }
+      if (next[id]) delete next[id]; else next[id] = true
+      try { localStorage.setItem('progress.done', JSON.stringify(next)) } catch {}
+      return next
+    })
+  }
   const fuse = useMemo(() => new Fuse(ALL, {
     includeScore: true,
     threshold: 0.35,
@@ -68,7 +86,9 @@ export default function App() {
       const out = []
       for (const g of data.groups) {
         if (cat !== 'All' && g.category !== cat) continue
-        const items = g.items.filter(it => (plugins || !it.plugin))
+        const items = g.items
+          .filter(it => (plugins || !it.plugin))
+          .map(it => ({ ...it, cat: g.category, id: makeId(g.category, it.keys, it.desc) }))
         if (items.length) out.push({ title: g.category, items })
       }
       return out
@@ -86,6 +106,18 @@ export default function App() {
     }
     return Array.from(map.entries()).map(([title, items]) => ({ title, items }))
   }, [q, cat, plugins, fuse])
+  const visibleIds = useMemo(() => results.flatMap(g => g.items.map(it => it.id)).filter(Boolean), [results])
+  const setDoneFor = (ids, value) => {
+    setDone(prev => {
+      const next = { ...prev }
+      for (const id of ids) {
+        if (!id) continue
+        if (value) next[id] = true; else delete next[id]
+      }
+      try { localStorage.setItem('progress.done', JSON.stringify(next)) } catch {}
+      return next
+    })
+  }
   useEffect(() => {
     const h = e => {
       if (e.key === '/') {
@@ -153,9 +185,27 @@ export default function App() {
       kbd: 'Ctrl+M',
       run: () => setPractice(v => !v),
     },
+    { title: 'Mark Visible Done', run: () => setDoneFor(visibleIds, true) },
+    { title: 'Unmark Visible', run: () => setDoneFor(visibleIds, false) },
+    { title: 'Clear Progress', run: () => { setDone({}); try { localStorage.removeItem('progress.done') } catch {} } },
     ...cats.map(c => ({ title: `Go to: ${c}`, run: () => setCat(c) })),
   ]
   const total = results.reduce((n, g) => n + g.items.length, 0)
+  const totalAll = ALL.length
+  const doneCount = Object.keys(done).length
+  const milestones = [10, 25, 50]
+  const [toast, setToast] = useState('')
+  useEffect(() => {
+    try {
+      const seen = JSON.parse(localStorage.getItem('progress.milestones') || '{}')
+      const hit = milestones.find(m => doneCount >= m && !seen[m])
+      if (hit) {
+        setToast(`Milestone: ${hit} complete! 🎉`)
+        const next = { ...seen, [hit]: true }
+        localStorage.setItem('progress.milestones', JSON.stringify(next))
+      }
+    } catch {}
+  }, [doneCount])
 
   const handleCategoryClick = (c) => {
     if (c === 'All') {
@@ -212,7 +262,7 @@ export default function App() {
 
   return(<div className='min-h-screen text-slate-100' style={{background:'linear-gradient(180deg,#020617,#0b1220)'}}>
     <Stars/>
-    <Header onPalette={()=>setPalette(true)}/>
+    <Header onPalette={()=>setPalette(true)} progress={{ done: doneCount, total: totalAll }}/>
     {/* ✅ Visual banner so you know it’s wired */}
     <DebugBanner deepCount={deep} total={grandTotal} />
     <ErrorBoundary>
@@ -264,8 +314,9 @@ export default function App() {
                         const file = e.target.files && e.target.files[0]; if(!file) return;
                         const txt = await file.text();
                         const obj = JSON.parse(txt);
-                        if(obj && obj.tutorial){ sendTutorialToPlayground(obj); }
-                      }catch(err){ console.error(err); alert('Invalid lesson JSON'); }
+                        const safe = sanitizeLesson(obj);
+                        if(safe && safe.tutorial){ sendTutorialToPlayground(safe); }
+                      }catch(err){ console.error(err); alert('Invalid lesson JSON: ' + (err?.message || 'unknown error')); }
                       finally{ e.target.value=''; }
                     }}/>
                     <span className='text-xs'>Import Lesson</span>
@@ -303,7 +354,7 @@ export default function App() {
           )}
           {results.map(group=>(<div key={group.title} id={'cat-'+slug(group.title)}><div className='flex items-center justify-between mb-2'><h2 className='text-lg font-semibold tracking-tight text-slate-100 drop-shadow'>{group.title}</h2><div className='text-slate-300 text-sm'>{group.items.length} items</div></div>
             <div className='grid [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))] gap-3'>{group.items.map((it,idx)=>(
-              <CommandCard key={idx} item={it} onOpen={openDetails} query={q} />
+              <CommandCard key={it.id||idx} item={it} onOpen={openDetails} query={q} done={!!done[it.id]} onToggleDone={()=>toggleDone(it.id)} />
             ))}</div></div>))}
         </section>
       </main>
@@ -311,6 +362,7 @@ export default function App() {
     <footer className='max-w-7xl mx-auto px-4 pb-6 text-xs text-slate-400'>Press <kbd className='px-1 rounded bg-slate-800 border border-slate-700'>Ctrl</kbd>+<kbd className='px-1 rounded bg-slate-800 border border-slate-700'>k</kbd> for palette • <kbd className='px-1 rounded bg-slate-800 border border-slate-700'>/</kbd> to search • Print for wall chart.</footer>
     <CommandPalette open={palette} onClose={()=>setPalette(false)} actions={actions}/>
     <CommandModal item={openItem} onClose={closeDetails} onSendKeys={sendTutorialToPlayground}/>
+    <Toast show={!!toast} message={toast} onClose={()=>setToast('')} />
     <style>{`@media print{header,aside .rounded-3xl:nth-child(3),footer,.fixed{display:none!important}main{grid-template-columns:1fr!important}.grid{grid-template-columns:1fr 1fr 1fr!important;gap:8px!important}.group{page-break-inside:avoid}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}`}</style>
   </div>)
 }
