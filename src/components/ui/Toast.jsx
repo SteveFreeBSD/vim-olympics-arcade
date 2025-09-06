@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 
-export default function Toast({ show, message, onClose, duration = 3200 }){
+export default function Toast({ show, message, onClose, duration = 3200 }) {
   useEffect(() => {
     if (!show) return
     const id = setTimeout(() => onClose && onClose(), duration)
@@ -16,4 +16,3 @@ export default function Toast({ show, message, onClose, duration = 3200 }){
     </div>
   )
 }
-

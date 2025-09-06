@@ -10,9 +10,15 @@ export default function CommandPalette({ open, onClose, actions }) {
       prevFocusRef.current = document.activeElement
       setTimeout(() => boxRef.current?.focus(), 10)
     } else {
-      setQ(''); setSel(0)
-      if (prevFocusRef.current && typeof prevFocusRef.current.focus === 'function') {
-        try { prevFocusRef.current.focus() } catch {}
+      setQ('')
+      setSel(0)
+      if (
+        prevFocusRef.current &&
+        typeof prevFocusRef.current.focus === 'function'
+      ) {
+        try {
+          prevFocusRef.current.focus()
+        } catch {}
       }
     }
   }, [open])
@@ -30,7 +36,12 @@ export default function CommandPalette({ open, onClose, actions }) {
       role="dialog"
       aria-modal="true"
       onClick={onClose}
-      onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); onClose() } }}
+      onKeyDown={e => {
+        if (e.key === 'Escape') {
+          e.preventDefault()
+          onClose()
+        }
+      }}
     >
       <div
         className="max-w-xl mx-auto mt-24"
@@ -46,24 +57,43 @@ export default function CommandPalette({ open, onClose, actions }) {
             aria-label="Command palette search"
             className="w-full px-4 py-3 bg-transparent border-b border-slate-700 focus:outline-none text-slate-100"
             onKeyDown={e => {
-              if (e.key === 'ArrowDown') { e.preventDefault(); setSel(s => Math.min(filtered.length - 1, s + 1)); }
-              if (e.key === 'ArrowUp') { e.preventDefault(); setSel(s => Math.max(0, s - 1)); }
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                const a = filtered[sel];
-                if (a) { a.run(); onClose(); }
+              if (e.key === 'ArrowDown') {
+                e.preventDefault()
+                setSel(s => Math.min(filtered.length - 1, s + 1))
               }
-              if (e.key === 'Escape') { e.preventDefault(); onClose(); }
+              if (e.key === 'ArrowUp') {
+                e.preventDefault()
+                setSel(s => Math.max(0, s - 1))
+              }
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                const a = filtered[sel]
+                if (a) {
+                  a.run()
+                  onClose()
+                }
+              }
+              if (e.key === 'Escape') {
+                e.preventDefault()
+                onClose()
+              }
             }}
           />
-          <ul className="max-h-80 overflow-auto" role="listbox" aria-activedescendant={String(sel)}>
+          <ul
+            className="max-h-80 overflow-auto"
+            role="listbox"
+            aria-activedescendant={String(sel)}
+          >
             {filtered.map((a, i) => (
               <li
                 key={i}
-                onClick={() => { a.run(); onClose(); }}
+                onClick={() => {
+                  a.run()
+                  onClose()
+                }}
                 id={String(i)}
                 role="option"
-                aria-selected={i===sel}
+                aria-selected={i === sel}
                 tabIndex={0}
                 className={
                   'w-full text-left px-4 py-2 flex items-center justify-between cursor-pointer ' +
@@ -75,7 +105,13 @@ export default function CommandPalette({ open, onClose, actions }) {
               </li>
             ))}
             {!filtered.length && (
-              <li className="px-4 py-3 text-slate-400" role="option" aria-selected={false}>No matches</li>
+              <li
+                className="px-4 py-3 text-slate-400"
+                role="option"
+                aria-selected={false}
+              >
+                No matches
+              </li>
             )}
           </ul>
         </div>

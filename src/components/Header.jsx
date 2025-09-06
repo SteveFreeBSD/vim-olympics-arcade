@@ -15,19 +15,17 @@ export default function Header({ onPalette, progress }) {
         <div className="flex items-center gap-2">
           {progress && (
             <div className="px-2 py-1 rounded-lg border border-emerald-400 text-emerald-200 bg-emerald-500/10 text-xs">
-              Progress: <span className="font-semibold">{Math.min(progress.done||0, progress.total||0)}</span> / {progress.total||0}
+              Progress:{' '}
+              <span className="font-semibold">
+                {Math.min(progress.done || 0, progress.total || 0)}
+              </span>{' '}
+              / {progress.total || 0}
             </div>
           )}
-          <button
-            onClick={onPalette}
-            className="neo-btn"
-          >
+          <button onClick={onPalette} className="neo-btn">
             Command palette
           </button>
-          <button
-            onClick={() => window.print()}
-            className="neo-btn"
-          >
+          <button onClick={() => window.print()} className="neo-btn">
             Print
           </button>
         </div>

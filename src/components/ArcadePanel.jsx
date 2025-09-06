@@ -14,9 +14,16 @@ export default function ArcadePanel() {
       width: 640,
       height: 360,
       backgroundColor: '#0b1220',
+      resolution: Math.min(
+        2,
+        typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1,
+      ),
       pixelArt: false,
       render: { antialias: true },
-      physics: { default: 'arcade', arcade: { gravity: { y: 0 }, debug: false } },
+      physics: {
+        default: 'arcade',
+        arcade: { gravity: { y: 0 }, debug: false, overlapBias: 24 },
+      },
       audio: { disableWebAudio: false, noAudio: false },
       scene: GameScene,
     })
@@ -27,7 +34,8 @@ export default function ArcadePanel() {
       ref={containerRef}
       tabIndex={0}
       onPointerDown={() => containerRef.current?.focus()}
-      className='rounded-3xl border border-slate-700/70 bg-slate-900/70 p-2 neo-card focus:outline-none focus:ring-2 focus:ring-cyan-500/30'>
+      className="rounded-3xl border border-slate-700/70 bg-slate-900/70 p-2 neo-card focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
+    >
       <div ref={hostRef} />
     </div>
   )

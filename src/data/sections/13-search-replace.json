@@ -27,11 +27,7 @@
         }
       ],
       "tutorial": {
-        "buffer": [
-          "Old",
-          "old and OLD",
-          "keep"
-        ],
+        "buffer": ["Old", "old and OLD", "keep"],
         "steps": [
           {
             "do": "Type :%s/old/new/gc<Enter>",

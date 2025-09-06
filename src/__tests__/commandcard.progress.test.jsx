@@ -6,7 +6,15 @@ describe('CommandCard progress toggle', () => {
   test('calls onToggleDone when Mark button clicked', () => {
     const item = { keys: 'dw', desc: 'delete word' }
     const onToggleDone = vi.fn()
-    render(<CommandCard item={item} onOpen={() => {}} onToggleDone={onToggleDone} query="" done={false} />)
+    render(
+      <CommandCard
+        item={item}
+        onOpen={() => {}}
+        onToggleDone={onToggleDone}
+        query=""
+        done={false}
+      />,
+    )
     const btn = screen.getByRole('button', { name: /mark/i })
     fireEvent.click(btn)
     expect(onToggleDone).toHaveBeenCalled()

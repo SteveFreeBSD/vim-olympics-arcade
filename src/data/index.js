@@ -67,14 +67,33 @@ export const tips = [
 ]
 
 // Helpful console diagnostic
-; (function(){
-  try{
-    if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.MODE !== 'production'){
-      const deep = groups.reduce((n,g)=> n + g.items.filter(it => it.details || (it.examples && it.examples.length) || it.tutorial).length, 0);
-      const total = groups.reduce((n,g)=> n + g.items.length, 0);
-      console.info('[Vim Olympics] Groups:', groups.length, 'Items:', total, 'Deep items:', deep);
+;(function () {
+  try {
+    if (
+      typeof import.meta !== 'undefined' &&
+      import.meta.env &&
+      import.meta.env.MODE !== 'production'
+    ) {
+      const deep = groups.reduce(
+        (n, g) =>
+          n +
+          g.items.filter(
+            it =>
+              it.details || (it.examples && it.examples.length) || it.tutorial,
+          ).length,
+        0,
+      )
+      const total = groups.reduce((n, g) => n + g.items.length, 0)
+      console.info(
+        '[Vim Olympics] Groups:',
+        groups.length,
+        'Items:',
+        total,
+        'Deep items:',
+        deep,
+      )
     }
-  }catch{}
-})();
+  } catch {}
+})()
 
 export default { groups, tips }

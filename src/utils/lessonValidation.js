@@ -2,11 +2,11 @@
 // Returns a sanitized lesson object { keys, desc, tutorial: { buffer, steps, keys } }
 // or throws an Error with a human-friendly message.
 
-const clamp = (n, min, max) => Math.max(min, Math.min(max, n))
-const toStr = (v) => (v == null ? '' : String(v))
+const toStr = v => (v == null ? '' : String(v))
 
 export function sanitizeLesson(input) {
-  if (!input || typeof input !== 'object') throw new Error('Root must be a JSON object')
+  if (!input || typeof input !== 'object')
+    throw new Error('Root must be a JSON object')
 
   const out = {}
   if (typeof input.keys === 'string') out.keys = toStr(input.keys).slice(0, 100)
@@ -28,7 +28,8 @@ export function sanitizeLesson(input) {
     // strip control characters except \t
     safeBuf.push(s.replace(/[\x00-\x08\x0B-\x1F\x7F]/g, ''))
   }
-  if (!safeBuf.length) throw new Error('tutorial.buffer must be a non-empty array of strings')
+  if (!safeBuf.length)
+    throw new Error('tutorial.buffer must be a non-empty array of strings')
   tout.buffer = safeBuf
 
   // steps: optional, cap 100, each with do/expect up to 200 chars
@@ -64,4 +65,3 @@ export function sanitizeLesson(input) {
 }
 
 export default sanitizeLesson
-

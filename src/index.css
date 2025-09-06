@@ -1,61 +1,118 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-html,body,#root{height:100%}
-*{box-sizing:border-box}
+html,
+body,
+#root {
+  height: 100%;
+}
+* {
+  box-sizing: border-box;
+}
 
 /* Futuristic chrome + neon utilities */
-@layer components{
-  .neo-card{
+@layer components {
+  .neo-card {
     @apply rounded-3xl border relative overflow-hidden;
     border-color: transparent;
     background:
-      linear-gradient(180deg, rgba(11,18,32,.88), rgba(2,6,23,.92)) padding-box,
-      linear-gradient(135deg, rgba(34,211,238,.6), rgba(236,72,153,.5) 40%, rgba(59,130,246,.45)) border-box;
+      linear-gradient(180deg, rgba(11, 18, 32, 0.88), rgba(2, 6, 23, 0.92))
+        padding-box,
+      linear-gradient(
+          135deg,
+          rgba(34, 211, 238, 0.6),
+          rgba(236, 72, 153, 0.5) 40%,
+          rgba(59, 130, 246, 0.45)
+        )
+        border-box;
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.06),
-      0 8px 30px -10px rgba(34,211,238,.28),
-      0 18px 60px -24px rgba(236,72,153,.25);
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 8px 30px -10px rgba(34, 211, 238, 0.28),
+      0 18px 60px -24px rgba(236, 72, 153, 0.25);
   }
-  .neo-card::before{
+  .neo-card::before {
     /* subtle corner glow */
-    content:""; position:absolute; inset:-1px; pointer-events:none;
-    background: radial-gradient(600px 120px at -10% -10%, rgba(34,211,238,.18), transparent 60%),
-                radial-gradient(400px 100px at 110% 110%, rgba(236,72,153,.16), transparent 60%);
+    content: '';
+    position: absolute;
+    inset: -1px;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        600px 120px at -10% -10%,
+        rgba(34, 211, 238, 0.18),
+        transparent 60%
+      ),
+      radial-gradient(
+        400px 100px at 110% 110%,
+        rgba(236, 72, 153, 0.16),
+        transparent 60%
+      );
     mask: linear-gradient(#000, #000);
     border-radius: 1.5rem;
   }
-  .chrome-btn{
+  .chrome-btn {
     @apply rounded-xl px-3 py-1.5 text-slate-100 border relative overflow-hidden;
     border-color: transparent;
     background:
-      linear-gradient(180deg, rgba(248,250,252,.16), rgba(30,41,59,.12)) padding-box,
-      linear-gradient(135deg, rgba(203,213,225,.9), rgba(148,163,184,.7) 40%, rgba(226,232,240,.9)) border-box;
+      linear-gradient(180deg, rgba(248, 250, 252, 0.16), rgba(30, 41, 59, 0.12))
+        padding-box,
+      linear-gradient(
+          135deg,
+          rgba(203, 213, 225, 0.9),
+          rgba(148, 163, 184, 0.7) 40%,
+          rgba(226, 232, 240, 0.9)
+        )
+        border-box;
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.35),
-      inset 0 -6px 12px rgba(2,6,23,.3),
-      0 10px 30px -12px rgba(148,163,184,.35);
-    transition: transform .15s ease, box-shadow .2s ease, filter .2s ease;
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      inset 0 -6px 12px rgba(2, 6, 23, 0.3),
+      0 10px 30px -12px rgba(148, 163, 184, 0.35);
+    transition:
+      transform 0.15s ease,
+      box-shadow 0.2s ease,
+      filter 0.2s ease;
   }
-  .chrome-btn:hover{ filter: brightness(1.05); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -6px 12px rgba(2,6,23,.35), 0 18px 40px -18px rgba(203,213,225,.5) }
-  .chrome-btn:active{ transform: translateY(1px) }
+  .chrome-btn:hover {
+    filter: brightness(1.05);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -6px 12px rgba(2, 6, 23, 0.35),
+      0 18px 40px -18px rgba(203, 213, 225, 0.5);
+  }
+  .chrome-btn:active {
+    transform: translateY(1px);
+  }
 
-  .chrome-text{
-    background: linear-gradient(180deg, #e2e8f0 0%, #94a3b8 30%, #f8fafc 60%, #64748b 100%);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-    text-shadow: 0 4px 24px rgba(34,211,238,.25);
+  .chrome-text {
+    background: linear-gradient(
+      180deg,
+      #e2e8f0 0%,
+      #94a3b8 30%,
+      #f8fafc 60%,
+      #64748b 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 4px 24px rgba(34, 211, 238, 0.25);
   }
-  .neo-input{
+  .neo-input {
     @apply rounded-xl bg-slate-900/70 border border-slate-700 text-slate-200 px-3 py-2 focus:outline-none;
-    box-shadow: 0 10px 30px -15px rgba(34,211,238,.22);
+    box-shadow: 0 10px 30px -15px rgba(34, 211, 238, 0.22);
   }
-  .neo-header{
-    box-shadow: 0 12px 40px -24px rgba(34,211,238,.35), inset 0 -1px 0 rgba(255,255,255,.06);
-    background-image: linear-gradient(180deg, rgba(2,6,23,.65), rgba(2,6,23,.45));
+  .neo-header {
+    box-shadow:
+      0 12px 40px -24px rgba(34, 211, 238, 0.35),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.06);
+    background-image: linear-gradient(
+      180deg,
+      rgba(2, 6, 23, 0.65),
+      rgba(2, 6, 23, 0.45)
+    );
   }
   /* Uniform buttons used across the UI */
-  .neo-btn{
+  .neo-btn {
     @apply rounded-xl px-3 py-1.5 border text-slate-200 bg-slate-800/80 border-slate-600 hover:bg-slate-800 hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 transition-colors;
-    box-shadow: 0 10px 30px -18px rgba(34,211,238,.25);
+    box-shadow: 0 10px 30px -18px rgba(34, 211, 238, 0.25);
   }
 }

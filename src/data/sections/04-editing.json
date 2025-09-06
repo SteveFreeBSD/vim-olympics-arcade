@@ -13,9 +13,7 @@
         }
       ],
       "tutorial": {
-        "buffer": [
-          "qui|ck brown fox"
-        ],
+        "buffer": ["qui|ck brown fox"],
         "steps": [
           {
             "do": "Type cw",
@@ -26,10 +24,7 @@
             "expect": "'quiet brown fox'"
           }
         ],
-        "keys": [
-          "c",
-          "w"
-        ]
+        "keys": ["c", "w"]
       }
     },
     {
@@ -44,9 +39,7 @@
         }
       ],
       "tutorial": {
-        "buffer": [
-          "alpha be|ta gamma"
-        ],
+        "buffer": ["alpha be|ta gamma"],
         "steps": [
           {
             "do": "Type C",
@@ -57,9 +50,7 @@
             "expect": "alpha beta"
           }
         ],
-        "keys": [
-          "C"
-        ]
+        "keys": ["C"]
       }
     },
     {

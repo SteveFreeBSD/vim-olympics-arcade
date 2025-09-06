@@ -12,7 +12,11 @@ export default function Quiz({ items, includePlugins = true }) {
   const [seen, setSeen] = useState(0)
   const [streak, setStreak] = useState(0)
   const [best, setBest] = useState(() => {
-    try { return parseInt(localStorage.getItem('quiz.best')||'0',10) || 0 } catch { return 0 }
+    try {
+      return parseInt(localStorage.getItem('quiz.best') || '0', 10) || 0
+    } catch {
+      return 0
+    }
   })
   const [last, setLast] = useState(null)
   useEffect(() => {
@@ -33,7 +37,9 @@ export default function Quiz({ items, includePlugins = true }) {
       const s2 = ok ? s + 1 : 0
       if (s2 > best) {
         setBest(s2)
-        try { localStorage.setItem('quiz.best', String(s2)) } catch{}
+        try {
+          localStorage.setItem('quiz.best', String(s2))
+        } catch {}
       }
       return s2
     })

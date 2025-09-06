@@ -17,9 +17,7 @@
         }
       ],
       "tutorial": {
-        "buffer": [
-          "alpha |beta gamma"
-        ],
+        "buffer": ["alpha |beta gamma"],
         "steps": [
           {
             "do": "Type e",
@@ -30,10 +28,7 @@
             "expect": "cursor on end of 'gamma'"
           }
         ],
-        "keys": [
-          "e",
-          "2e"
-        ]
+        "keys": ["e", "2e"]
       }
     },
     {
@@ -75,10 +70,7 @@
         }
       ],
       "tutorial": {
-        "buffer": [
-          "    alpha",
-          "beta    "
-        ],
+        "buffer": ["    alpha", "beta    "],
         "steps": [
           {
             "do": "Type ^",
@@ -93,11 +85,7 @@
             "expect": "cursor to end of line"
           }
         ],
-        "keys": [
-          "^",
-          "0",
-          "$"
-        ]
+        "keys": ["^", "0", "$"]
       }
     },
     {
@@ -117,9 +105,7 @@
         }
       ],
       "tutorial": {
-        "buffer": [
-          "find the next o in: fo|o bar baz"
-        ],
+        "buffer": ["find the next o in: fo|o bar baz"],
         "steps": [
           {
             "do": "Type f o",
@@ -130,11 +116,7 @@
             "expect": "repeat to next 'o'"
           }
         ],
-        "keys": [
-          "f",
-          "o",
-          ";"
-        ]
+        "keys": ["f", "o", ";"]
       }
     },
     {
@@ -168,12 +150,7 @@
             "expect": "repeat twice"
           }
         ],
-        "keys": [
-          "t",
-          " ",
-          ";",
-          ";"
-        ]
+        "keys": ["t", " ", ";", ";"]
       }
     },
     {

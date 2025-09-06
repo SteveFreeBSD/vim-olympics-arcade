@@ -9,8 +9,8 @@ describe('lessonValidation', () => {
       tutorial: {
         buffer: ['alpha |beta', 'gamma'],
         steps: [{ do: 'Type dw', expect: 'deletes word' }],
-        keys: ['d', 'w']
-      }
+        keys: ['d', 'w'],
+      },
     }
     const safe = sanitizeLesson(raw)
     expect(safe.tutorial.buffer.length).toBe(2)
@@ -22,10 +22,13 @@ describe('lessonValidation', () => {
   })
 
   test('caps buffer length and strips control chars', () => {
-    const raw = { tutorial: { buffer: Array.from({ length: 300 }, (_, i) => `line${i}\x07`) } }
+    const raw = {
+      tutorial: {
+        buffer: Array.from({ length: 300 }, (_, i) => `line${i}\x07`),
+      },
+    }
     const safe = sanitizeLesson(raw)
     expect(safe.tutorial.buffer.length).toBeLessThanOrEqual(200)
     expect(safe.tutorial.buffer[0]).toBe('line0')
   })
 })
-
