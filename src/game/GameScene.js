@@ -1208,13 +1208,7 @@ export default class GameScene extends Phaser.Scene {
     // Pooled objects can occasionally miss group colliders; run explicit overlaps.
     // Player bullets vs enemies
     try {
-      this.physics.overlap(
-        this.bullets,
-        this.enemies,
-        this.onHit,
-        null,
-        this,
-      )
+      this.physics.overlap(this.bullets, this.enemies, this.onHit, null, this)
     } catch {}
     if (this.emBoss && this.emBoss.active) {
       try {
