@@ -1,0 +1,9 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = true
+[remote "origin"]
+	url = git@github.com:SteveFreeBSD/vim-olympics-arcade.git
+	tagOpt = --no-tags
+	fetch = +refs/*:refs/*
+	mirror = true

@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.vite/
+.DS_Store
+*.log
+*.patch
+*.zip
+.env
+.env.*
+coverage/
+*.local
+**/.history/
+**/.cache/
+eslintcache

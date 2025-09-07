@@ -1,0 +1,24 @@
+{
+  "category": "Search in multiple files",
+  "items": [
+    {
+      "keys": ":vimgrep /pattern/ **/*",
+      "desc": "search recursively into quickfix",
+      "details": "Uses Vim's internal grep. You can :copen to view, :cn/:cp to navigate.",
+      "examples": [
+        {
+          "before": "(project workspace)",
+          "after": "(quickfix list populated)"
+        }
+      ]
+    },
+    {
+      "keys": ":cn / :cp",
+      "desc": "next / previous quickfix match"
+    },
+    {
+      "keys": ":copen / :cclose",
+      "desc": "open / close quickfix window"
+    }
+  ]
+}

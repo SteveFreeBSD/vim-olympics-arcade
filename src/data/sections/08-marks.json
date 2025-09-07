@@ -1,0 +1,30 @@
+{
+  "category": "Marks and positions",
+  "items": [
+    {
+      "keys": ":marks",
+      "desc": "list marks",
+      "details": "Lowercase marks are local to a file; uppercase are global."
+    },
+    {
+      "keys": "ma / `a / 'a",
+      "desc": "set mark a / jump to mark",
+      "details": "` jumps exact position; ' jumps to first nonblank."
+    },
+    {
+      "keys": "y`a",
+      "desc": "yank to mark a",
+      "details": "Operator-motion with a mark target."
+    },
+    {
+      "keys": ":jumps / Ctrl+o / Ctrl+i",
+      "desc": "jump list back/forward",
+      "details": "Navigate previous cursor jumps."
+    },
+    {
+      "keys": ":changes / g; / g,",
+      "desc": "change list older/newer",
+      "details": "Jump through locations of edits."
+    }
+  ]
+}

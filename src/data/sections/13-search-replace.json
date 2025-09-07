@@ -1,0 +1,45 @@
+{
+  "category": "Search and replace",
+  "items": [
+    {
+      "keys": "/{pattern} / ?{pattern}",
+      "desc": "search forward / backward",
+      "details": "Use \\c to make case-insensitive; \\C for sensitive within pattern."
+    },
+    {
+      "keys": "n / N",
+      "desc": "next / previous match"
+    },
+    {
+      "keys": "\\v{pattern}",
+      "desc": "very magic regex",
+      "details": "Fewer escapes needed; non-alphanumeric are magic by default."
+    },
+    {
+      "keys": ":%s/old/new/gc",
+      "desc": "replace all with confirmation",
+      "details": "g for all in line; c prompt per match; add i or I for case-insensitive/sensitive.",
+      "examples": [
+        {
+          "before": "Old\\nold and OLD\\nkeep",
+          "after": "new\\nnew and new\\nkeep",
+          "notes": ":%s/old/new/gi for case-insensitive"
+        }
+      ],
+      "tutorial": {
+        "buffer": ["Old", "old and OLD", "keep"],
+        "steps": [
+          {
+            "do": "Type :%s/old/new/gc<Enter>",
+            "expect": "confirm each match (y/n/a/q)"
+          }
+        ],
+        "keys": []
+      }
+    },
+    {
+      "keys": ":noh / :nohlsearch",
+      "desc": "clear search highlight"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "category": "Tabs",
+  "items": [
+    {
+      "keys": ":tabnew {file}",
+      "desc": "open file in new tab"
+    },
+    {
+      "keys": "Ctrl+w T",
+      "desc": "move current split to its own tab"
+    },
+    {
+      "keys": "gt / :tabnext / :tabn",
+      "desc": "next tab"
+    },
+    {
+      "keys": "gT / :tabprev / :tabp",
+      "desc": "previous tab"
+    },
+    {
+      "keys": "#gt",
+      "desc": "go to tab number #"
+    },
+    {
+      "keys": ":tabmove #",
+      "desc": "move current tab to index # (0-based)"
+    },
+    {
+      "keys": ":tabclose / :tabc",
+      "desc": "close current tab"
+    },
+    {
+      "keys": ":tabonly / :tabo",
+      "desc": "close other tabs"
+    },
+    {
+      "keys": ":tabdo {cmd}",
+      "desc": "run a command in all tabs"
+    }
+  ]
+}

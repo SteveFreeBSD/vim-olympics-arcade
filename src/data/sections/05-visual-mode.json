@@ -1,0 +1,39 @@
+{
+  "category": "Marking text (visual mode)",
+  "items": [
+    {
+      "keys": "v / V / Ctrl+v",
+      "desc": "characterwise / linewise / blockwise visual",
+      "details": "Enter visual mode. Use motions to expand. Operators (y,d,>) act on the selection."
+    },
+    {
+      "keys": "aw / iw",
+      "desc": "a word / inner word",
+      "details": "aw includes surrounding space; iw selects the word only.",
+      "examples": [
+        {
+          "before": "quick |brown fox",
+          "after": "[quick {brown} fox]",
+          "notes": "v then iw selects 'brown'"
+        }
+      ]
+    },
+    {
+      "keys": "ab / ib",
+      "desc": "a block with () / inner block",
+      "details": "ab selects including the parentheses; ib excludes them.",
+      "examples": [
+        {
+          "before": "call(|alpha(beta))",
+          "after": "call( [alpha(beta)] )",
+          "notes": "v ib selects inside ()"
+        }
+      ]
+    },
+    {
+      "keys": "o / O",
+      "desc": "swap visual anchor",
+      "details": "Move to the other end/corner of the selection."
+    }
+  ]
+}

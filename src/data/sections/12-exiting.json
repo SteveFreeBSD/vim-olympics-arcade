@@ -1,0 +1,29 @@
+{
+  "category": "Exiting",
+  "items": [
+    {
+      "keys": ":w",
+      "desc": "write file",
+      "details": "Saves without leaving Vim."
+    },
+    {
+      "keys": ":w !sudo tee %",
+      "desc": "write with sudo",
+      "details": "Saves protected files via tee; % expands to current filename."
+    },
+    {
+      "keys": ":wq / :x / ZZ",
+      "desc": "write and quit",
+      "details": ":x writes only if changed."
+    },
+    {
+      "keys": ":q / :q! / ZQ",
+      "desc": "quit / force quit",
+      "details": "ZQ is :q! shortcut."
+    },
+    {
+      "keys": ":wqa",
+      "desc": "write and quit all tabs"
+    }
+  ]
+}

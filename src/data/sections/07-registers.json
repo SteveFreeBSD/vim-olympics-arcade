@@ -1,0 +1,29 @@
+{
+  "category": "Registers",
+  "items": [
+    {
+      "keys": ":registers / :reg",
+      "desc": "show registers",
+      "details": "Lists all registers and contents."
+    },
+    {
+      "keys": "\"xy",
+      "desc": "yank to register x",
+      "details": "x is any alphanumeric register name."
+    },
+    {
+      "keys": "\"xp",
+      "desc": "paste from register x"
+    },
+    {
+      "keys": "\"+y / \"+p",
+      "desc": "system clipboard",
+      "details": "\"+ is the GUI clipboard; \"* is the X11 primary selection."
+    },
+    {
+      "keys": "0 / \" / _",
+      "desc": "last yank / unnamed / black hole",
+      "details": "0 holds last yank; \" holds last delete/yank; _ discards."
+    }
+  ]
+}

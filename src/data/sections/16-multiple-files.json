@@ -1,0 +1,53 @@
+{
+  "category": "Working with multiple files",
+  "items": [
+    {
+      "keys": ":edit {file}",
+      "desc": "edit file in buffer"
+    },
+    {
+      "keys": ":bnext / :bn   \u2022  :bprev / :bp",
+      "desc": "next / previous buffer"
+    },
+    {
+      "keys": ":bdelete",
+      "desc": "delete buffer (close file)"
+    },
+    {
+      "keys": ":buffer # / :buffer {file}",
+      "desc": "go to buffer by index or name"
+    },
+    {
+      "keys": ":ls / :buffers",
+      "desc": "list open buffers"
+    },
+    {
+      "keys": ":split {file} / :sp {file}",
+      "desc": "horizontal split and edit file"
+    },
+    {
+      "keys": ":vsplit {file} / :vsp {file}",
+      "desc": "vertical split and edit file"
+    },
+    {
+      "keys": ":vertical ball / :tab ball",
+      "desc": "open all buffers as vertical splits / tabs"
+    },
+    {
+      "keys": "Ctrl+w s / v",
+      "desc": "split window horizontally / vertically"
+    },
+    {
+      "keys": "Ctrl+w w / q / x / =",
+      "desc": "cycle / close / exchange / equalize windows"
+    },
+    {
+      "keys": "Ctrl+w h / j / k / l",
+      "desc": "move to left / down / up / right split"
+    },
+    {
+      "keys": "Ctrl+w H / J / K / L",
+      "desc": "send window far left / bottom / top / right full size"
+    }
+  ]
+}

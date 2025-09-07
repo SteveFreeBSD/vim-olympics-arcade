@@ -1,0 +1,168 @@
+{
+  "category": "Cursor movement",
+  "items": [
+    {
+      "keys": "e",
+      "desc": "jump forward to end of word",
+      "details": "Moves to the last character of the current/next word. Honors 'iskeyword'. Use a count to repeat.",
+      "examples": [
+        {
+          "before": "alph|a beta",
+          "after": "alpha bet|a",
+          "notes": "From inside 'alpha', moves to end of 'beta' with count."
+        },
+        {
+          "before": "alpha |beta",
+          "after": "alpha bet|a"
+        }
+      ],
+      "tutorial": {
+        "buffer": ["alpha |beta gamma"],
+        "steps": [
+          {
+            "do": "Type e",
+            "expect": "cursor on 'a' (end of beta)"
+          },
+          {
+            "do": "Type 2e",
+            "expect": "cursor on end of 'gamma'"
+          }
+        ],
+        "keys": ["e", "2e"]
+      }
+    },
+    {
+      "keys": "B / W",
+      "desc": "jump by BIG words start (space-delimited)",
+      "details": "B and W treat punctuation as part of words. B moves backward to start; W moves forward to start.",
+      "examples": [
+        {
+          "before": "alpha-(be|ta)+gamma",
+          "after": "alp|ha-(beta)+gamma",
+          "notes": "B backs up to start of 'alpha' treating symbols as part of word"
+        },
+        {
+          "before": "alpha-(|beta)+gamma",
+          "after": "alpha-(beta)+|gamma",
+          "notes": "W hops to 'gamma'"
+        }
+      ]
+    },
+    {
+      "keys": "0 / ^ / $",
+      "desc": "line start / first nonblank / line end",
+      "details": "0 goes to column 0. ^ skips indentation. $ goes to end; with 'virtualedit' off it lands on last char.",
+      "examples": [
+        {
+          "before": "    |alpha",
+          "after": "|    alpha",
+          "notes": "0 goes to true col 0"
+        },
+        {
+          "before": "    |alpha",
+          "after": "    |alpha",
+          "notes": "^ to first non-blank"
+        },
+        {
+          "before": "alp|ha",
+          "after": "alpha|",
+          "notes": "$ to end"
+        }
+      ],
+      "tutorial": {
+        "buffer": ["    alpha", "beta    "],
+        "steps": [
+          {
+            "do": "Type ^",
+            "expect": "cursor on 'a' of alpha"
+          },
+          {
+            "do": "Type 0",
+            "expect": "cursor to column 0"
+          },
+          {
+            "do": "Type $",
+            "expect": "cursor to end of line"
+          }
+        ],
+        "keys": ["^", "0", "$"]
+      }
+    },
+    {
+      "keys": "f{char} / F{char}",
+      "desc": "find next/previous char on the line",
+      "details": "Places the cursor ON the found character. Repeats with ; and ,.",
+      "examples": [
+        {
+          "before": "foo bar ba|z",
+          "after": "foo bar b|az",
+          "notes": "F a finds previous 'a'"
+        },
+        {
+          "before": "f|oo bar baz",
+          "after": "fo|o bar baz",
+          "notes": "f o finds next 'o'"
+        }
+      ],
+      "tutorial": {
+        "buffer": ["find the next o in: fo|o bar baz"],
+        "steps": [
+          {
+            "do": "Type f o",
+            "expect": "land on the next 'o'"
+          },
+          {
+            "do": "Type ;",
+            "expect": "repeat to next 'o'"
+          }
+        ],
+        "keys": ["f", "o", ";"]
+      }
+    },
+    {
+      "keys": "t{char} / T{char} ; ,",
+      "desc": "till before/after char + repeat",
+      "details": "t/T stop adjacent to the match (before/after). ; repeats forward, , repeats backward.",
+      "examples": [
+        {
+          "before": "a b c d e f| g",
+          "after": "a b c d e |f g",
+          "notes": "t f stops before f"
+        },
+        {
+          "before": "a b c d e f| g",
+          "after": "a b c d e f |g",
+          "notes": "; repeats t f to next spot"
+        }
+      ],
+      "tutorial": {
+        "buffer": [
+          "letters: a b c d e f g",
+          "cursor on the left: |a b c d e f g"
+        ],
+        "steps": [
+          {
+            "do": "Type t space",
+            "expect": "stop before next space"
+          },
+          {
+            "do": "Type ; ;",
+            "expect": "repeat twice"
+          }
+        ],
+        "keys": ["t", " ", ";", ";"]
+      }
+    },
+    {
+      "keys": "zz",
+      "desc": "center the cursor line",
+      "details": "Scrolls so the current line is centered in the window.",
+      "examples": [
+        {
+          "before": "(cursor near top)",
+          "after": "(line centered)"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "category": "Global",
+  "items": [
+    {
+      "keys": ":h keyword",
+      "desc": "open help for keyword"
+    },
+    {
+      "keys": ":sav file",
+      "desc": "save file as"
+    },
+    {
+      "keys": ":clo",
+      "desc": "close current pane"
+    },
+    {
+      "keys": ":ter",
+      "desc": "open a terminal window"
+    },
+    {
+      "keys": "K",
+      "desc": "open man page for word under cursor"
+    },
+    {
+      "keys": "vimtutor",
+      "desc": "launch the built-in tutorial (run in shell)"
+    }
+  ]
+}

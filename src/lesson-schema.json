@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stevefreebsd.dev/vim-olympics/lesson.schema.json",
+  "title": "Vim Olympics Lesson",
+  "type": "object",
+  "required": ["desc", "tutorial"],
+  "properties": {
+    "keys": { "type": ["string", "array"], "items": { "type": "string" } },
+    "desc": { "type": "string", "minLength": 1 },
+    "tutorial": {
+      "type": "object",
+      "required": ["buffer", "steps"],
+      "properties": {
+        "buffer": { "type": "array", "items": { "type": "string" } },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["do"],
+            "properties": {
+              "do": { "type": "string" },
+              "expect": { "type": "string" }
+            }
+          }
+        },
+        "keys": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

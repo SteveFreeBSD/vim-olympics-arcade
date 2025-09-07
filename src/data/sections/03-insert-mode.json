@@ -1,0 +1,69 @@
+{
+  "category": "Insert mode",
+  "items": [
+    {
+      "keys": "i",
+      "desc": "insert before cursor"
+    },
+    {
+      "keys": "I",
+      "desc": "insert at beginning of line"
+    },
+    {
+      "keys": "a",
+      "desc": "append after cursor"
+    },
+    {
+      "keys": "A",
+      "desc": "append at end of line"
+    },
+    {
+      "keys": "o",
+      "desc": "open new line below"
+    },
+    {
+      "keys": "O",
+      "desc": "open new line above"
+    },
+    {
+      "keys": "ea",
+      "desc": "append at end of word"
+    },
+    {
+      "keys": "Ctrl+h",
+      "desc": "delete char before cursor (insert mode)"
+    },
+    {
+      "keys": "Ctrl+w",
+      "desc": "delete word before cursor (insert mode)"
+    },
+    {
+      "keys": "Ctrl+j",
+      "desc": "insert line break"
+    },
+    {
+      "keys": "Ctrl+t",
+      "desc": "indent line one shiftwidth (insert mode)"
+    },
+    {
+      "keys": "Ctrl+d",
+      "desc": "de-indent line one shiftwidth (insert mode)"
+    },
+    {
+      "keys": "Ctrl+n / Ctrl+p",
+      "desc": "insert next/prev completion match"
+    },
+    {
+      "keys": "Ctrl+r{reg}",
+      "desc": "insert contents of register {reg}"
+    },
+    {
+      "keys": "Ctrl+o{cmd}",
+      "desc": "temporary normal-mode for one command"
+    },
+    {
+      "keys": "Esc / Ctrl+c",
+      "desc": "leave insert mode"
+    }
+  ]
+}
